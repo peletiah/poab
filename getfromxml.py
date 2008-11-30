@@ -3,11 +3,14 @@
 from lxml import etree
 import os
 import string
-import gpx2list
-import tktogpx2
-import flickrupload
+import gpx2list	    #custom
+import tktogpx2	    #custom
+import flickrupload #custom
 import urllib
 import ConfigParser
+import initdatabase #custom
+from sqlalchemy import and_
+
 
 basepath='/srv/trackdata/bydate/'
 
@@ -15,10 +18,12 @@ def getcredentials(credentialfile):
     config=ConfigParser.ConfigParser()
     open(credentialfile)
     config.read(credentialfile)
+    pg_user=config.get("postgresql","username")
+    pg_passwd=config.get("postgresql","password")
     flickrapi_key=config.get("flickrcredentials","api_key")
     flickrapi_secret=config.get("flickrcredentials","api_secret")
     wteapi_key=config.get("worldtimeengine","api_key")
-    return flickrapi_key,flickrapi_secret,wteapi_key
+    return pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key
 
 
 def parsexml(xmlfile):
@@ -42,14 +47,13 @@ def parsexml(xmlfile):
 
 def query_wte(wteapi_key,lat,long):
     f = urllib.urlopen("http://worldtimeengine.com/api/"+wteapi_key+"/"+str(lat)+"/"+str(long))
-    geodetails=f.read()
+    tzdetails=f.read()
     f.close()
-    return geodetails
+    return tzdetails
 
-
-def gpx2database(gpxfile,wteapi_key):
+def get_timezone(gpxfile,wteapi_key,Session,timezone):
 ######################### replace this shit by worldtimeengine-query when finished #############
-    geodetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
+    tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
     <version>1.1</version>
     <location>
@@ -71,7 +75,7 @@ def gpx2database(gpxfile,wteapi_key):
     </time>
 </timezone>''')
 
-    geodetailslast=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
+    tzdetailslast=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
     <version>1.1</version>
     <location>
@@ -96,24 +100,56 @@ def gpx2database(gpxfile,wteapi_key):
 
     trkptlist=gpx2list.trkptlist(gpxfile)
     lat,long=trkptlist[0] #first point in the track
-    #geodetailsfirst=query_wte(wteapi_key,lat,long)
+    #tzdetailsfirst=query_wte(wteapi_key,lat,long)
     lat,long=trkptlist[-1] #last point in the track
-    #geodetailslast=query_wte(wteapi_key,lat,long)
+    #tzdetailslast=query_wte(wteapi_key,lat,long)
     
-    if (geodetailsfirst.xpath('//utcoffset')[0]).text == (geodetailslast.xpath('//utcoffset')[0]).text:
-	utcoffset=(geodetailsfirst.xpath('//utcoffset')[0]).text
-	tz_abbreviation=(geodetailsfirst.xpath('//abbreviation')[0]).text	
-	tz_description=(geodetailsfirst.xpath('//description')[0]).text
-	tz_region=(geodetailsfirst.xpath('//region')[0]).text	
-	print tz_abbreviation,tz_description,tz_region	
+    if (tzdetailsfirst.xpath('//utcoffset')[0]).text == (tzdetailslast.xpath('//utcoffset')[0]).text:
+	tz_utcoffset=(tzdetailslast.xpath('//utcoffset')[0]).text
+	tz_abbreviation=(tzdetailslast.xpath('//abbreviation')[0]).text	
+	tz_description=(tzdetailslast.xpath('//description')[0]).text
+	tz_region=(tzdetailslast.xpath('//region')[0]).text	
+	print tz_utcoffset,tz_abbreviation,tz_description,tz_region	
     else:
 	print 'We need to check this tracklist in more detail, as there was a shift in the timezone'
 	print 'between the first and the last trackpoint'
 	i=False
 	#function to check the tracklist toroughly goes here
     
-    
-    
+    session=Session()
+    if session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset)).count() == 1:
+	for detail in session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset)).all():
+	    tz_detail=detail
+	    print 'timezone found - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
+    elif session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset)).count() > 1:
+	for detail in session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset)).all():
+	    tz_detail=detail
+	    print 'ERROR - more than one timezone-id for the same timezone! - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
+    else:
+	print 'creating timezone'   
+        tz_detail=timezone(tz_utcoffset,tz_abbreviation,tz_description,tz_region)
+        session.add(tz_detail)
+        session.commit()
+    	for detail in session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset)).all():
+	    tz_detail=detail
+	    print 'timezone created - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
+   	
+    return tz_detail
+
+
+def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone,tz_detail):
+    tree = etree.fromstring(file(gpxfile, "r").read())
+    i=0
+    print tree
+    for trkpt in tree.xpath('//trkpt'):
+	lat=float(tree.xpath('//@lat')[i])
+	lon=float(tree.xpath('//@lon')[i])
+	altitude=int(tree.xpath('//ele')[0]).text
+	time=tree.xpath('//time')[0].text
+	temperature=tree.xpath('//desc')[0].text
+	print lat,lon,altitude,time,temperature
+	i=i+1
+	
 
 	    
 
@@ -144,7 +180,7 @@ def img2flickr(imagepath,imglist,gpxfile,flickrapi_key,flickrapi_secret):
 
 
 def main(basepath):
-    flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
+    pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):
 	    xmlcontent=parsexml(xmlfile)
@@ -163,7 +199,9 @@ def main(basepath):
 	    except IOError:
 		print 'trackfile missing!'
 		gpxfile=None
-	    gpx2database(gpxfile,wteapi_key)
+	    Session,blog,comments,continent,country,photosets,imageinfo,infomarker,track,trackpoint,timezone=initdatabase.initdatabase(pg_user,pg_passwd)
+	    tz_detail=get_timezone(gpxfile,wteapi_key,Session,timezone)
+	    gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone,tz_detail)
 	    geotag(imagepath,gpxfile)
 	    #img2flickr(imagepath,imglist,gpxfile,flickrapi_key,flickrapi_secret)
 

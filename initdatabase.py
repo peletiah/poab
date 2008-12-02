@@ -16,7 +16,7 @@ def initdatabase(pg_user,pg_passwd):
 
     blog_table = sa.Table("log", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
-        sa.Column("marker_id", types.Integer, ForeignKey('infomarkers.id')),
+        sa.Column("marker_id", types.Integer, ForeignKey('infomarker.id')),
         sa.Column("country_id", types.Integer, ForeignKey('country.iso_nationalcode')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
@@ -144,7 +144,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("log_id", types.Integer, ForeignKey('log.id')),
         sa.Column("country_id", types.Integer, ForeignKey('country.iso_nationalcode')),
-        sa.Column("infomarker_id", types.Integer, ForeignKey('infomarkers.id')),
+        sa.Column("infomarker_id", types.Integer, ForeignKey('infomarker.id')),
         sa.Column("photoset_id", types.Integer, ForeignKey('photosets.id')),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('track.id')),
         sa.Column("flickrfarm", types.VARCHAR(256)),
@@ -178,7 +178,7 @@ def initdatabase(pg_user,pg_passwd):
 
     ####### INFOMARKER ########
 
-    infomarker_table = sa.Table("infomarkers", meta,
+    infomarker_table = sa.Table("infomarker", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         )
@@ -199,15 +199,17 @@ def initdatabase(pg_user,pg_passwd):
     track_table = sa.Table("track", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("date", types.TIMESTAMP(timezone=True)),
-        sa.Column("distance", types.Numeric(8,6)),
+        sa.Column("trkptnum", types.Integer),
+        sa.Column("distance", types.Numeric(11,4)),
         sa.Column("timespan", types.DateTime),
         )
     class track(object):
         def __str(self):
             return self.title
 
-        def __init__(self,date,distance,timespan):
+        def __init__(self,date,trkptnum,distance,timespan):
             self.date = date
+	    self.trkptnum = trkptnum
             self.distance = distance
             self.timespan = timespan
 
@@ -221,8 +223,8 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("track_id", types.Integer, ForeignKey('track.id')),
         sa.Column("timezone_id", types.Integer, ForeignKey('timezone.id')),
-        sa.Column("latitude", types.Numeric(7,7)),
-        sa.Column("longitude", types.Numeric(7,7)),
+        sa.Column("latitude", types.Numeric(9,7)),
+        sa.Column("longitude", types.Numeric(10,7)),
         sa.Column("altitude", types.Integer),
         sa.Column("velocity", types.Integer),
         sa.Column("temperature", types.Integer),

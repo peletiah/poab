@@ -202,19 +202,23 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("trkptnum", types.Integer),
         sa.Column("distance", types.Numeric(11,4)),
         sa.Column("timespan", types.DateTime),
+	sa.Column("gencpoly_pts", types.UnicodeText),
+	sa.Column("gencpoly_levels", types.UnicodeText),
         )
     class track(object):
         def __str(self):
             return self.title
 
-        def __init__(self,date,trkptnum,distance,timespan):
+        def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels):
             self.date = date
 	    self.trkptnum = trkptnum
             self.distance = distance
             self.timespan = timespan
+	    self.gencpoly_pts = gencpoly_pts
+	    self.gencpoly_levels = gencpoly_levels
 
         def __repr__(self):
-            return "<track('%s','%s','%s')>" % (self.date,self.distance,self.timespan)
+            return "<track('%s','%s','%s','%s','%s')>" % (self.date,self.distance,self.timespan,self.gencpoly_pts,self.gencpoly_levels)
 
 
     ####### TRACKPOINT ########
@@ -278,6 +282,50 @@ def initdatabase(pg_user,pg_passwd):
             return "<timezone('%s','%s','%s','%s')>" % (self.utcoffset,self.abbreviation,self.description,self.region)
 
 
+    ####### image2tag ########
+
+    image2tag_table = sa.Table("image2tag", meta,
+        sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
+        sa.Column("imageinfo_id", types.Integer, ForeignKey('imageinfo.id')),
+        sa.Column("timezone_id", types.Integer, ForeignKey('timezone.id')),
+        )
+
+    class image2tag(object):
+        def __str(self):
+           return self.title
+
+        def __init__(self,imageinfo_id,timezone_id):
+            self.imageinfo_id = imageinfo_id
+            self.timezone_id = timezone_id
+
+
+        def __repr__(self):
+            return "<image2tag('%s','%s')>" % (self.imageinfo_id,self.timezone_id)
+
+
+    ####### phototag ########
+
+    phototag_table = sa.Table("phototag", meta,
+        sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
+        sa.Column("tag", types.VARCHAR(256)),
+        )
+
+    class phototag(object):
+        def __str(self):
+           return self.title
+
+        def __init__(self,tag):
+            self.tag = tag
+
+
+        def __repr__(self):
+            return "<phototag('%s')>" % (self.tag)
+
+
+
+
+
+
     orm.mapper(blog, blog_table,
         order_by=[blog_table.c.id.desc()])
 
@@ -308,8 +356,15 @@ def initdatabase(pg_user,pg_passwd):
     orm.mapper(timezone, timezone_table,
         order_by=[timezone_table.c.id.desc()])
 
+    orm.mapper(image2tag, image2tag_table,
+        order_by=[image2tag_table.c.id.desc()])
+
+    orm.mapper(phototag, phototag_table,
+        order_by=[phototag_table.c.id.desc()])
+
+
 
     Session=orm.sessionmaker(bind=engine)
-    return Session,blog,comments,continent,country,photosets,imageinfo,infomarker,track,trackpoint,timezone
+    return Session,blog,comments,continent,country,photosets,imageinfo,infomarker,track,trackpoint,timezone,image2tag,phototag
 
 

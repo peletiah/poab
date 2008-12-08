@@ -7,7 +7,6 @@ import string
 import gpx2list	    #custom
 import glineenc	    #custom
 import tktogpx2	    #custom
-import flickrupload #custom
 import urllib
 import ConfigParser
 import initdatabase #custom
@@ -92,13 +91,13 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
 	#function to check the tracklist toroughly goes here
     
     session=Session()
-    query=session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset))
-    if query.count() == 1:
-	for detail in query.all():
+    query_timezone=session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset))
+    if query_timezone.count() == 1:
+	for detail in query_timezone.all():
 	    tz_detail=detail
 	    print 'timezone found - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
-    elif query.count() > 1:
-	for detail in query.all():
+    elif query_timezone.count() > 1:
+	for detail in query_timezone.all():
 	    tz_detail=detail
 	    print 'ERROR - more than one timezone-id for the same timezone! - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
     else:
@@ -106,7 +105,7 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
         tz_detail=timezone(tz_utcoffset,tz_abbreviation,tz_description,tz_region)
         session.add(tz_detail)
         session.commit()
-    	for detail in query.all():
+    	for detail in query_timezone.all():
 	    tz_detail=detail
 	    print 'timezone created - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
    	
@@ -162,52 +161,59 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
     gencpoly=glineenc.encode_pairs(latlonlist)
 
     trkpt_1ts=trkpts[0][7] #first timestamp in the trackpoint-list
-    query=session.query(track).filter(and_(track.date==trkpt_1ts,track.trkptnum==trk_ptnum,track.distance==trk_distance,track.timespan==trk_span,track.gencpoly_pts==gencpoly[0],track.gencpoly_levels==gencpoly[1]))
-    if query.count() == 1:
-	for detail in query.all():
+    query_track=session.query(track).filter(and_(track.date==trkpt_1ts,track.trkptnum==trk_ptnum,track.distance==trk_distance,track.timespan==trk_span,track.gencpoly_pts==gencpoly[0],track.gencpoly_levels==gencpoly[1]))
+    if query_track.count() == 1:
+	for detail in query_track.all():
 	    track_detail=detail
 	    print 'track found - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
-    elif query.count() > 1:
-	for detail in query.all():
+    elif query_track.count() > 1:
+	for detail in query_track.all():
 	    track_detail=detail
 	    print 'more than one track found! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
     else:
         session.add(track(trkpt_1ts,trk_ptnum,trk_distance,trk_span,gencpoly[0],gencpoly[1]))
 	session.commit()
-    	for detail in query.all():
+    	for detail in query_track.all():
 	    track_detail=detail
 	    print 'track created! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
 
     i=0
     for trkpt in trkpts:
 	lat,lon,altitude,velocity,temperature,direction,pressure,time=trkpts[i]
-	query=session.query(trackpoint).filter(and_(trackpoint.track_id==track_detail.id,trackpoint.timezone_id==tz_detail.id,trackpoint.latitude==lat,trackpoint.longitude==lon,trackpoint.altitude==float(altitude),trackpoint.velocity==velocity,trackpoint.temperature==temperature,trackpoint.direction==direction,trackpoint.pressure==pressure,trackpoint.timestamp==time))
-	if query.count() == 1:
-	    for detail in query.all():
+	query_trackpoint=session.query(trackpoint).filter(and_(trackpoint.track_id==track_detail.id,trackpoint.timezone_id==tz_detail.id,trackpoint.latitude==lat,trackpoint.longitude==lon,trackpoint.altitude==float(altitude),trackpoint.velocity==velocity,trackpoint.temperature==temperature,trackpoint.direction==direction,trackpoint.pressure==pressure,trackpoint.timestamp==time))
+	if query_trackpoint.count() == 1:
+	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
 		print 'Trackpoint already exists - id:'+ str(trkpt_detail.id) + ' details:' + str(trkpt_detail)
-        elif query.count() > 1:
-	    for detail in query.all():
+        elif query_trackpoint.count() > 1:
+	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
 		print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
 	else:
 	    #trackpoints are unique, insert them now
 	    session.add(trackpoint(track_detail.id,tz_detail.id,lat,lon,float(altitude),velocity,temperature,direction,pressure,time)) 
             session.commit()
-	    for detail in query.all():
+	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
-		#in the middle of the track, we create an infomarker-entry with the current trackpoint_id
-		if i==track_detail.trkptnum/2:
-		  query2=session.query(infomarker).filter(infomarker.trackpoint_id==trkpt_detail.id)
-		  if query2.count() == 1:
-		    for detail in query2.all():
-			print 'infomarker already exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
-		  elif query2.count() > 1:
-    		    for detail in query2.all():
-			print 'infomarker duplicate exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
-		  else:
-    		    session.add(infomarker(trkpt_detail.id))
+
+	#in the middle of the track, we create an infomarker-entry with the current trackpoint_id
+	if i==track_detail.trkptnum/2:
+	  query_infomarker=session.query(infomarker).filter(infomarker.trackpoint_id==trkpt_detail.id)
+	  if query_infomarker.count() == 1:
+	    for detail in query_infomarker.all():
+		print 'infomarker already exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
+		infomarker_id=detail.id
+	  elif query_infomarker.count() > 1:
+    	    for detail in query_infomarker.all():
+		print 'infomarker duplicate exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
+		infomarker_id=detail.id
+	  else:
+	    session.add(infomarker(trkpt_detail.id))
+    	    for detail in query_infomarker.all():
+		print 'infomarker created! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
+		infomarker_id=detail.id
 	i=i+1
+    return infomarker_id	
 	    
 
 def geotag(imagepath,gpxfile):#geotag the pictures in imagepath with data from gpxfile

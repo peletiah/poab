@@ -146,7 +146,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("country_id", types.Integer, ForeignKey('country.iso_nationalcode')),
         sa.Column("infomarker_id", types.Integer, ForeignKey('infomarker.id')),
         sa.Column("photoset_id", types.Integer, ForeignKey('photosets.id')),
-        sa.Column("trackpoint_id", types.Integer, ForeignKey('track.id')),
+        sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("flickrfarm", types.VARCHAR(256)),
         sa.Column("flickrserver", types.VARCHAR(256)),
         sa.Column("flickrphotoid", types.VARCHAR(256)),
@@ -282,7 +282,7 @@ def initdatabase(pg_user,pg_passwd):
             return "<timezone('%s','%s','%s','%s')>" % (self.utcoffset,self.abbreviation,self.description,self.region)
 
 
-    ####### image2tag ########
+    ####### IMAGE2TAG ########
 
     image2tag_table = sa.Table("image2tag", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
@@ -303,23 +303,25 @@ def initdatabase(pg_user,pg_passwd):
             return "<image2tag('%s','%s')>" % (self.imageinfo_id,self.timezone_id)
 
 
-    ####### phototag ########
+    ####### PHOTOTAG ########
 
     phototag_table = sa.Table("phototag", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("tag", types.VARCHAR(256)),
+        sa.Column("flickrtagid", types.VARCHAR(256)),
         )
 
     class phototag(object):
         def __str(self):
            return self.title
 
-        def __init__(self,tag):
+        def __init__(self,tag,flickrtagid):
             self.tag = tag
+            self.flickrtagid = flickrtagid
 
 
         def __repr__(self):
-            return "<phototag('%s')>" % (self.tag)
+            return "<phototag('%s','%s')>" % (self.tag,self.flickrtagid)
 
 
 

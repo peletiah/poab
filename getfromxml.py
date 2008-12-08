@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 import os
 import string
 import tktogpx2	    #custom
-import flickrupload #custom
+import image_functions #custom
 import geo_timezone #custom
 import urllib
 import ConfigParser
@@ -47,36 +47,17 @@ def parsexml(xmlfile):
 	    pass
     return topic,logtext,filepath,trackfile,photoset,imglist		
 
-def img2database(flickrphotoid,flickrimgdetails):
-   print flickrphotoid 
-		
-def img2flickr(imagepath,imglist,gpxfile,flickrapi_key,flickrapi_secret):
-    filetypes=('.png','.jpg','.jpeg','.gif')
-    for image in os.listdir(imagepath):
-	if image.lower().endswith(filetypes):
-	    #get the exif-geo-info with jhead
-	    geoinfo=os.popen("/usr/bin/jhead -exifmap "+imagepath+image+"|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines()
-	    latitude,longitude=geoinfo[0].strip('\n').split(',',1)
-	    try:
-		flickrphotoid=flickrupload.imgupload(imagepath+image,'testtitle','testdescription','blabla "sadfa asfaf" asfd')
-		flickrimgdetails = flickrupload.getimginfo(flickrphotoid)
-	    except AttributeError:
-		print 'A AttributeError occured'
-	    img2database(flickrphotoid,flickrimgdetails)
-			
-
-
 def main(basepath):
     pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):
-	    xmlcontent=parsexml(xmlfile)
-	    topic=xmlcontent[0]
-	    logtext=xmlcontent[1]
-	    filepath=xmlcontent[2]
-	    trackfile=xmlcontent[3]
-	    photoset=xmlcontent[4]
-	    imglist=xmlcontent[5]
+	    topic,logtext,filepath,trackfile,photoset,imglist=parsexml(xmlfile)
+				# topic - topic of the log-entry
+				# logtext - content-text of the log-entry
+				# filepath - where are the files belonging to this xml-file situated 
+				# trackfile - the gps-trackfile
+				# photoset - name of the set for flickr
+				# imglist - list of the images in the xml
 	    imagepath=filepath+'images_sorted/'
 	    try:
 		trackpath=filepath+'trackfile/'
@@ -88,9 +69,10 @@ def main(basepath):
 		gpxfile=None
 	    Session,blog,comments,continent,country,photosets,imageinfo,infomarker,track,trackpoint,timezone,image2tag,phototag=initdatabase.initdatabase(pg_user,pg_passwd)
 	    tz_detail=geo_timezone.get_timezone(gpxfile,wteapi_key,Session,timezone)
-	    geo_timezone.gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone,tz_detail)
+	    infomarker_id=geo_timezone.gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone,tz_detail)
 	    geo_timezone.geotag(imagepath,gpxfile)
-	    #img2flickr(imagepath,imglist,gpxfile,flickrapi_key,flickrapi_secret)
+	    tags='simpletag "double tag" anothersimpletag'
+	    image_functions.img2flickr(imagepath,imglist,photoset,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,trackpoint,imageinfo,image2tag,phototag,photosets)
 
 main(basepath)
 

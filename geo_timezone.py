@@ -23,7 +23,7 @@ def query_wte(wteapi_key,lat,long):
     f.close()
     return tzdetails
 
-def get_timezone(gpxfile,wteapi_key,Session,timezone):
+def get_timezone(gpxfile,wteapi_key,Session,db_timezone):
 ######################### replace this shit by worldtimeengine-query when finished #############
     tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
@@ -75,8 +75,6 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
    # tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
     lat,long=trkptlist[-1] #last point in the track
    # tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
-    print tzdetailsfirst
-    print tzdetailslast
     
     if (tzdetailsfirst.xpath('//utcoffset')[0]).text == (tzdetailslast.xpath('//utcoffset')[0]).text:
 	tz_utcoffset=(tzdetailslast.xpath('//utcoffset')[0]).text
@@ -91,7 +89,7 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
 	#function to check the tracklist toroughly goes here
     
     session=Session()
-    query_timezone=session.query(timezone).filter(and_(timezone.abbreviation==tz_abbreviation,timezone.utcoffset==tz_utcoffset))
+    query_timezone=session.query(db_timezone).filter(and_(db_timezone.abbreviation==tz_abbreviation,db_timezone.utcoffset==tz_utcoffset))
     if query_timezone.count() == 1:
 	for detail in query_timezone.all():
 	    tz_detail=detail
@@ -102,7 +100,7 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
 	    print 'ERROR - more than one timezone-id for the same timezone! - id:'+ str(tz_detail.id) + ' - details:' + str(tz_detail)
     else:
 	print 'creating timezone'   
-        tz_detail=timezone(tz_utcoffset,tz_abbreviation,tz_description,tz_region)
+        tz_detail=db_timezone(tz_utcoffset,tz_abbreviation,tz_description,tz_region)
         session.add(tz_detail)
         session.commit()
     	for detail in query_timezone.all():
@@ -112,7 +110,7 @@ def get_timezone(gpxfile,wteapi_key,Session,timezone):
     return tz_detail
 
 
-def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone,tz_detail):
+def gpx2database(gpxfile,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail):
     session=Session()
     tree = etree.parse(gpxfile)
     gpx_ns = "http://www.topografix.com/GPX/1/1"
@@ -161,7 +159,7 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
     gencpoly=glineenc.encode_pairs(latlonlist)
 
     trkpt_1ts=trkpts[0][7] #first timestamp in the trackpoint-list
-    query_track=session.query(track).filter(and_(track.date==trkpt_1ts,track.trkptnum==trk_ptnum,track.distance==trk_distance,track.timespan==trk_span,track.gencpoly_pts==gencpoly[0],track.gencpoly_levels==gencpoly[1]))
+    query_track=session.query(db_track).filter(and_(db_track.date==trkpt_1ts,db_track.trkptnum==trk_ptnum,db_track.distance==trk_distance,db_track.timespan==trk_span,db_track.gencpoly_pts==gencpoly[0],db_track.gencpoly_levels==gencpoly[1]))
     if query_track.count() == 1:
 	for detail in query_track.all():
 	    track_detail=detail
@@ -171,7 +169,7 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
 	    track_detail=detail
 	    print 'more than one track found! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
     else:
-        session.add(track(trkpt_1ts,trk_ptnum,trk_distance,trk_span,gencpoly[0],gencpoly[1]))
+        session.add(db_track(trkpt_1ts,trk_ptnum,trk_distance,trk_span,gencpoly[0],gencpoly[1]))
 	session.commit()
     	for detail in query_track.all():
 	    track_detail=detail
@@ -180,7 +178,7 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
     i=0
     for trkpt in trkpts:
 	lat,lon,altitude,velocity,temperature,direction,pressure,time=trkpts[i]
-	query_trackpoint=session.query(trackpoint).filter(and_(trackpoint.track_id==track_detail.id,trackpoint.timezone_id==tz_detail.id,trackpoint.latitude==lat,trackpoint.longitude==lon,trackpoint.altitude==float(altitude),trackpoint.velocity==velocity,trackpoint.temperature==temperature,trackpoint.direction==direction,trackpoint.pressure==pressure,trackpoint.timestamp==time))
+	query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.timezone_id==tz_detail.id,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.altitude==float(altitude),db_trackpoint.velocity==velocity,db_trackpoint.temperature==temperature,db_trackpoint.direction==direction,db_trackpoint.pressure==pressure,db_trackpoint.timestamp==time))
 	if query_trackpoint.count() == 1:
 	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
@@ -191,14 +189,14 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
 		print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
 	else:
 	    #trackpoints are unique, insert them now
-	    session.add(trackpoint(track_detail.id,tz_detail.id,lat,lon,float(altitude),velocity,temperature,direction,pressure,time)) 
+	    session.add(db_trackpoint(track_detail.id,tz_detail.id,lat,lon,float(altitude),velocity,temperature,direction,pressure,time)) 
             session.commit()
 	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
 
 	#in the middle of the track, we create an infomarker-entry with the current trackpoint_id
 	if i==track_detail.trkptnum/2:
-	  query_infomarker=session.query(infomarker).filter(infomarker.trackpoint_id==trkpt_detail.id)
+	  query_infomarker=session.query(db_infomarker).filter(db_infomarker.trackpoint_id==trkpt_detail.id)
 	  if query_infomarker.count() == 1:
 	    for detail in query_infomarker.all():
 		print 'infomarker already exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
@@ -208,7 +206,7 @@ def gpx2database(gpxfile,wteapi_key,Session,infomarker,track,trackpoint,timezone
 		print 'infomarker duplicate exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
 		infomarker_id=detail.id
 	  else:
-	    session.add(infomarker(trkpt_detail.id))
+	    session.add(db_infomarker(trkpt_detail.id))
     	    for detail in query_infomarker.all():
 		print 'infomarker created! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
 		infomarker_id=detail.id
@@ -222,5 +220,3 @@ def geotag(imagepath,gpxfile):#geotag the pictures in imagepath with data from g
     else:
 	print 'An error occured at geotag'
 			
-
-

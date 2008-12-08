@@ -6,7 +6,6 @@ from sqlalchemy import types
 from sqlalchemy import ForeignKey
 
 
-
 def initdatabase(pg_user,pg_passwd):
     engine = sa.create_engine('postgres://' + pg_user + ':' + pg_passwd + '@localhost/poab')
 
@@ -111,10 +110,8 @@ def initdatabase(pg_user,pg_passwd):
     photoset_table = sa.Table("photosets", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("flickrsetid", types.VARCHAR(256)),
+        sa.Column("flickrowner", types.VARCHAR(256)),
         sa.Column("flickrprimary", types.VARCHAR(256)),
-        sa.Column("flickrsecret", types.VARCHAR(256)),
-        sa.Column("flickrserver", types.VARCHAR(256)),
-        sa.Column("flickrfarm", types.VARCHAR(256)),
         sa.Column("flickrphotocount", types.Integer),
         sa.Column("flickrtitle", types.VARCHAR(256)),
         sa.Column("flickrdescription", types.UnicodeText),
@@ -124,18 +121,16 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,flickrsetid,flickrprimary,flickrsecret,flickrserver,flickrfarm,flickrphotocount,flickrtitle,flickrdescription):
+        def __init__(self,flickrsetid,flickrowner,flickrprimary,flickrphotocount,flickrtitle,flickrdescription):
             self.flickrsetid = flickrsetid
+            self.flickrowner = flickrowner
             self.flickrprimary = flickrprimary
-            self.flickrsecret = flickrsecret
-            self.flickrserver = flickrserver
-            self.flickrfarm = flickrfarm
             self.flickrphotocount = flickrphotocount
             self.flickrtitle = flickrtitle
             self.flickrdescription = flickrdescription
 
         def __repr__(self):
-            return "<photosets('%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.flickrsetid,self.flickrprimary,self.flickrsecret,self.flickrserver,self.flickrfarm,self.flickrphotocount,self.flickrtitle,self.flickrdescription)
+            return "<photosets('%s','%s','%s','%s','%s','%s')>" % (self.flickrsetid,self.flickrowner,self.flickrprimary,self.flickrphotocount,self.flickrtitle,self.flickrdescription)
 
 
     ####### IMAGEINFO ########
@@ -152,14 +147,14 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("flickrphotoid", types.VARCHAR(256)),
         sa.Column("flickrsecret", types.VARCHAR(256)),
         sa.Column("flickrdatetaken", types.TIMESTAMP(timezone=True)),
-        sa.Column("original_name", types.VARCHAR(256)),
+        sa.Column("photohash", types.VARCHAR(256)),
         )
 
     class imageinfo(object):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,country_id,infomarker_id,photoset_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,original_name):
+        def __init__(self,log_id,country_id,infomarker_id,photoset_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
             self.log_id = log_id
             self.country_id = country_id
             self.infomarker_id = infomarker_id
@@ -170,10 +165,10 @@ def initdatabase(pg_user,pg_passwd):
             self.flickrphotoid = flickrphotoid
             self.flickrsecret = flickrsecret
             self.flickrdatetaken = flickrdatetaken
-            self.original_name = original_name
+            self.photohash = photohash
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.country_id,self.infomarker_id,self.photoset_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphoto_id,self.flickrsecret,self.flickrdatetaken,self.original_name)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.country_id,self.infomarker_id,self.photoset_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
 
 
     ####### INFOMARKER ########

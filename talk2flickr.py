@@ -22,6 +22,25 @@ def imgupload(filename,title,description,tags):
     photoid=etree.tostring(result_xml.xpath(query_photoid)[0]).split(">")[1].split("<")[0]
     return photoid
 
+def create_photoset(photosetname,description,photoid):
+    # coding=utf-8
+    result=flickr.photosets_create(title=photosetname,description=description,primary_photo_id=photoid)
+    photosetid=result.find('photoset').attrib['id']
+    return photosetid
+
+def get_photosetinfo(photoset_id):
+    photosetinfo=flickr.photosets_getInfo(photoset_id=photoset_id)
+    owner=photosetinfo.find('photoset').attrib['owner']
+    primary=photosetinfo.find('photoset').attrib['primary']
+    count=photosetinfo.find('photoset').attrib['photos']
+    title=photosetinfo.find('photoset/title').text
+    description=photosetinfo.find('photoset/description').text
+    return owner,primary,count,title,description
+
+def photoset_addphoto(photoset_id,photoid):
+    result=flickr.photosets_addPhoto(photoset_id=photoset_id,photo_id=photoid)
+    return result
+
 def getimginfo(photoid):
     photoinfo=flickr.photos_getInfo(photo_id=photoid)
     secret=photoinfo.find('photo').attrib['secret']

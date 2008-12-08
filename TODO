@@ -1,3 +1,4 @@
 + allow multiple gpx-files
 + add more flickr-relevant input-fields to the creator-interface(image-title or country, image-description, tags,...)
 + proper exception-Handling in talk2flickr
++ set geolocation of photos on flickr

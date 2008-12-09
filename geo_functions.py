@@ -9,7 +9,6 @@ import glineenc	    #custom
 import tktogpx2	    #custom
 import urllib
 import ConfigParser
-import initdatabase #custom
 from sqlalchemy import and_
 import re
 from decimal import Decimal

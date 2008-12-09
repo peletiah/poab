@@ -9,7 +9,7 @@ import image_functions #custom
 import geo_functions #custom
 import urllib
 import ConfigParser
-import initdatabase #custom
+import db_functions #custom
 from sqlalchemy import and_
 import re
 from decimal import Decimal
@@ -67,7 +67,7 @@ def main(basepath):
 	    except IOError:
 		print 'trackfile missing!'
 		gpxfile=None
-	    Session,db_blog,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_infomarker,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=initdatabase.initdatabase(pg_user,pg_passwd)
+	    Session,db_blog,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_infomarker,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
 	    tz_detail=geo_functions.get_timezone(gpxfile,wteapi_key,Session,db_timezone)
 	    infomarker_id=geo_functions.gpx2database(gpxfile,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
 	    geo_functions.geotag(imagepath,gpxfile)

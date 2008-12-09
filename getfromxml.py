@@ -6,7 +6,7 @@ import os
 import string
 import tktogpx2	    #custom
 import image_functions #custom
-import geo_timezone #custom
+import geo_functions #custom
 import urllib
 import ConfigParser
 import initdatabase #custom
@@ -68,9 +68,9 @@ def main(basepath):
 		print 'trackfile missing!'
 		gpxfile=None
 	    Session,db_blog,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_infomarker,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=initdatabase.initdatabase(pg_user,pg_passwd)
-	    tz_detail=geo_timezone.get_timezone(gpxfile,wteapi_key,Session,db_timezone)
-	    infomarker_id=geo_timezone.gpx2database(gpxfile,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
-	    geo_timezone.geotag(imagepath,gpxfile)
+	    tz_detail=geo_functions.get_timezone(gpxfile,wteapi_key,Session,db_timezone)
+	    infomarker_id=geo_functions.gpx2database(gpxfile,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
+	    geo_functions.geotag(imagepath,gpxfile)
 	    tags='simpletag "double tag" anothersimpletag'
 	    image_functions.img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
 

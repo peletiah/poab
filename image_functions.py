@@ -5,7 +5,6 @@ import os
 from sqlalchemy import and_
 from sqlalchemy import update
 import hashlib
-import flickrapi
 
 def imgcheck(Session,db_imageinfo,photohash):
     session=Session()

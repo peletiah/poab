@@ -34,7 +34,6 @@ def parsexml(xmlfile):
     topic =  (tree.xpath('//topic')[0]).text.replace("&gt;",">").replace("&lt;","<")
     logtext =  (tree.xpath('//logtext')[0]).text.replace("&gt;",">").replace("&lt;","<")
     filepath =  (tree.xpath('//filepath')[0]).text
-    trackfile =  (tree.xpath('//trackfile')[0]).text
     photosetname =  (tree.xpath('//photoset')[0]).text
     i=1
     imglist=dict()
@@ -45,32 +44,33 @@ def parsexml(xmlfile):
 	except IndexError:
 	    i=i+1
 	    pass
-    return topic,logtext,filepath,trackfile,photosetname,imglist		
+    return topic,logtext,filepath,photosetname,imglist		
 
 def main(basepath):
     pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):
-	    topic,logtext,filepath,trackfile,photosetname,imglist=parsexml(xmlfile)
+	    topic,logtext,filepath,photosetname,imglist=parsexml(xmlfile)
 				# topic - topic of the log-entry
 				# logtext - content-text of the log-entry
 				# filepath - where are the files belonging to this xml-file situated 
-				# trackfile - the gps-trackfile
 				# photosetname - name of the set for flickr
 				# imglist - list of the images in the xml
 	    imagepath=filepath+'images_sorted/'
 	    try:
 		trackpath=filepath+'trackfile/'
-		#passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
-		tktogpx2.interactive(trackpath,filepath.rsplit('/',2)[1]+'.gpx',trackpath+trackfile) 
-		gpxfile=trackpath+filepath.rsplit('/',2)[1]+'.gpx'
+		for trackfile in os.listdir(trackpath):
+		    if trackfile.lower().endswith('.tk1'):
+			#passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
+			tktogpx2.interactive(trackpath,filepath.rsplit('/',2)[1]+'.gpx',trackpath+trackfile)
+		    else:
+			pass 
 	    except IOError:
-		print 'trackfile missing!'
-		gpxfile=None
+		print 'no trackfile in trackfile-directory!'
 	    Session,db_blog,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_infomarker,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
-	    tz_detail=geo_functions.get_timezone(gpxfile,wteapi_key,Session,db_timezone)
-	    infomarker_id=geo_functions.gpx2database(gpxfile,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
-	    geo_functions.geotag(imagepath,gpxfile)
+	    tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,Session,db_timezone)
+	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
+	    geo_functions.geotag(imagepath,trackpath)
 	    tags='simpletag "double tag" anothersimpletag'
 	    image_functions.img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
 

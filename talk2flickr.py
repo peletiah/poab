@@ -22,6 +22,17 @@ def imgupload(filename,title,description,tags):
     photoid=etree.tostring(result_xml.xpath(query_photoid)[0]).split(">")[1].split("<")[0]
     return photoid
 
+def imgreplace(filename,photo_id):
+    # coding=utf-8
+    result=flickr.replace(filename=filename,photo_id=photo_id)
+    result_xml=etree.fromstring(result.xml)
+    query_photoid='//photoid'
+    photoid=etree.tostring(result_xml.xpath(query_photoid)[0]).split(">")[1].split("<")[0]
+    return photoid
+
+
+
+
 def create_photoset(photosetname,description,photoid):
     # coding=utf-8
     result=flickr.photosets_create(title=photosetname,description=description,primary_photo_id=photoid)

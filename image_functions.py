@@ -29,7 +29,7 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
     if query_photoset.count() == 1:
 	for detail in query_photoset.all():
 	    photoset_detail=detail
-	    print 'Photoset already exists - id:' + str(photoset_detail.id) + 'details:' + str(photoset_detail)
+	    print 'Photoset already exists - id:' + str(photoset_detail.id) + ' details:' + str(photoset_detail)
 	    #check if photoid is in this photoset
 	    query_imageinfo=session.query(db_imageinfo).filter(and_(db_imageinfo.photoset_id==photoset_detail.id,db_imageinfo.flickrphotoid==flickrphotoid))
 	    if query_imageinfo.count() >= 1:
@@ -95,10 +95,7 @@ def img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secre
 	    #check if the photo already exists
 	    result,imageinfo_detail=imgcheck(Session,db_imageinfo,photohash)
 	    if result > 0:
-		try:
-		    farm,server,flickrphotoid,secret,originalformat,date_taken,tags,url = talk2flickr.getimginfo(imageinfo_detail.flickrphotoid)
-		except flickrapi.exceptions.FlickrError:
-		    print 'Flickr error'
+		farm,server,flickrphotoid,secret,originalformat,date_taken,tags,url = talk2flickr.getimginfo(imageinfo_detail.flickrphotoid)
 	    else:
                 try:
 		    #image not on flickr and db, initiate upload

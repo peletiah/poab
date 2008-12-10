@@ -178,8 +178,8 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
 		    pressure=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Pressure" % (gpx_ns,ext_ns,ext_ns)).text
 		    trkpts.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
 		    latlonlist.append((float(lat),float(lon)))
-    print i
-    print 'total desc-values - ptnum:' + str(trk_ptnum[i-1]) + ' distance:' + str(trk_distance[i-1]) + ' time:' + str(trk_span[i-1])
+    
+    #get the last value of each "desc"-segment, this value represents the total from the several gpx-files
     trk_ptnumtotal=trk_ptnum[i-1]
     trk_distancetotal=trk_distance[i-1]
     trk_spantotal=trk_span[i-1]
@@ -244,7 +244,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
 	    
 
 def geotag(imagepath,trackpath):#geotag the pictures in imagepath with data from gpxfile
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 --overwrite-geotagged > /var/log/poab/geotag.log 2>&1") == 0:
+    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 > /var/log/poab/geotag.log 2>&1") == 0:
 	pass
     else:
 	print 'An error occured at geotag'

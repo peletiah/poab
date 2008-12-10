@@ -62,7 +62,7 @@ def main(basepath):
 		for trackfile in os.listdir(trackpath):
 		    if trackfile.lower().endswith('.tk1'):
 			#passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
-			tktogpx2.interactive(trackpath,filepath.rsplit('/',2)[1]+'.gpx',trackpath+trackfile)
+			tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
 		    else:
 			pass 
 	    except IOError:

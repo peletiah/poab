@@ -85,6 +85,7 @@ def img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secre
         if image.lower().endswith(filetypes):
             #get the exif-geo-info with jhead
             geoinfo=os.popen("/usr/bin/jhead -exifmap "+imagepath+image+"|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines()
+	    print geoinfo
             latitude,longitude=geoinfo[0].strip('\n').split(',',1)
 	    query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==latitude,db_trackpoint.longitude==longitude))
 	    trackpoint_id=query_trackpoint.first().id

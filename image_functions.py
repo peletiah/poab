@@ -40,9 +40,9 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
 	    #update photocount
 	    owner,primary,count,title,description=talk2flickr.get_photosetinfo(photoset_detail.flickrsetid)
 	    if count != photoset_detail.flickrphotocount:
-		for column in session.query(db_photosets).all():
+		for column in query_photoset.all():
 		    column.flickrphotocount=count
-		session.commit()
+		    session.commit()
 
     elif query_photoset.count() > 1:
         for detail in query_photoset.all():

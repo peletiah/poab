@@ -114,8 +114,11 @@ def removelocation(photoid):
 def findplace(lat,lon,accuracy):
     try:
 	place=flickr.places_findByLatLon(lat=lat,lon=lon,accuracy=accuracy)
-	place_url=place.find('places/place').attrib['place_url'].replace('+',' ').replace('/','')
-	return place_url
+	try:
+	    place_url=place.find('places/place').attrib['name'].replace('+',' ').replace('/','')
+	    return place_url
+	except AttributeError:
+	    return None
     except flickrapi.FlickrError, (value):
         sys.stderr.write("%s\n" % (value, ))
         sys.exit(1)

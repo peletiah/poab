@@ -94,15 +94,15 @@ def initdatabase(pg_user,pg_passwd):
         )
 
     class country(object):
-        def __init__(self,iso_numcode,continent_id,iso_countryname,iso3_countrycode,flickr_countryname):
+        def __init__(self,iso_numcode,continent_id,iso_countryname,iso3_nationalcode,flickr_countryname):
             self.iso_numcode = iso_numcode
             self.continent_id = continent_id
             self.iso_countryname = iso_countryname
-            self.iso3_countryocde = iso3_countrycode
+            self.iso3_nationalcode = iso3_nationalcode
             self.flickr_countryname = flickr_countryname
 
         def __repr__(self):
-            return "<country_table('%s','%s','%s','%s','%s')" % (self.iso_numcode,self.continent_id,self.iso_countryname,self.iso3_countrycode,self.flickr_countryname)
+            return "<country_table('%s','%s','%s','%s','%s')" % (self.iso_numcode,self.continent_id,self.iso_countryname,self.iso3_nationalcode,self.flickr_countryname)
 
 
         def __str(self):

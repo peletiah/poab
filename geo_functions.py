@@ -15,6 +15,7 @@ import decimal
 from commands import *
 import sys
 from datetime import timedelta
+import talk2flickr
 
 
 basepath='/srv/trackdata/bydate/'
@@ -92,9 +93,9 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
     #we find out the timezone by getting the timezone for the first and the last coordinate of our trackfiles
     trkptlist=gentrkptlist(trackpath)
     lat,long=trkptlist[0] #first point in the track
-    tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
+    #tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
     lat,long=trkptlist[-1] #last point in the track
-    tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
+    #tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
     
     if (tzdetailsfirst.xpath('//utcoffset')[0]).text == (tzdetailslast.xpath('//utcoffset')[0]).text:
 	tz_utcoffset=(tzdetailslast.xpath('//utcoffset')[0]).text
@@ -130,7 +131,23 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
     return tz_detail
 
 
-def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail):
+def get_country(lat,lon,Session,db_country):
+    session=Session()
+    accuracy=1 #level of region-detail in flickr, 1 is world
+    flickr_countryname=talk2flickr.findplace(lat,lon,accuracy)
+    query_country=session.query(db_country).filter(db_country.flickr_countryname==flickr_countryname)
+    if query_country.count() == 1:
+	for detail in query_country.all():
+            country_detail=detail
+            print 'country found - id:'+ str(country_detail.iso_numcode) + ' - details:' + str(country_detail)
+    elif query_country.count() > 1:
+        for detail in query_country.all():
+            country_detail=detail
+            print 'ERROR - more than one country-id for the same flickr_countryname! - id:'+ str(country_detail.iso_numcode) + ' - details:' + str(country_detail)
+    return country_detail
+
+
+def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail):
     print 'FUNCTION GPX2DATABASE'
     session=Session()
     i=1
@@ -209,7 +226,9 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
     i=0
     for trkpt in trkpts:
 	lat,lon,altitude,velocity,temperature,direction,pressure,time=trkpts[i]
-	query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.timezone_id==tz_detail.id,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.altitude==float(altitude),db_trackpoint.velocity==velocity,db_trackpoint.temperature==temperature,db_trackpoint.direction==direction,db_trackpoint.pressure==pressure,db_trackpoint.timestamp==time))
+	if i==0 or i==track_detail.trkptnum: # we only check for the first and the last trackpoint what the country is, needs improvement(ref. TODO)
+	    country_detail=get_country(lat,lon,Session,db_country)
+	query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.timezone_id==tz_detail.id,db_trackpoint.country_id==country_detail.iso_numcode,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.altitude==float(altitude),db_trackpoint.velocity==velocity,db_trackpoint.temperature==temperature,db_trackpoint.direction==direction,db_trackpoint.pressure==pressure,db_trackpoint.timestamp==time))
 	if query_trackpoint.count() == 1:
 	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
@@ -220,27 +239,17 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
 		print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
 	else:
 	    #trackpoints are unique, insert them now
-	    session.add(db_trackpoint(track_detail.id,tz_detail.id,lat,lon,float(altitude),velocity,temperature,direction,pressure,time)) 
+	    session.add(db_trackpoint(track_detail.id,tz_detail.id,country_detail.iso_numcode,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False)) 
             session.commit()
 	    for detail in query_trackpoint.all():
 		trkpt_detail=detail
 
-	#in the middle of the track, we create an infomarker-entry with the current trackpoint_id
+	#in the middle of the track, we set the current infomarker.trackpoint_id to true as this is our infomarker-point
 	if i==track_detail.trkptnum/2:
-	  query_infomarker=session.query(db_infomarker).filter(db_infomarker.trackpoint_id==trkpt_detail.id)
-	  if query_infomarker.count() == 1:
-	    for detail in query_infomarker.all():
-		print 'infomarker already exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
-		infomarker_id=detail.id
-	  elif query_infomarker.count() > 1:
-    	    for detail in query_infomarker.all():
-		print 'infomarker duplicate exists! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
-		infomarker_id=detail.id
-	  else:
-	    session.add(db_infomarker(trkpt_detail.id))
-    	    for detail in query_infomarker.all():
-		print 'infomarker created! id:'+str(detail.id)+' - trackpoint_id:' + str(detail.trackpoint_id)
-		infomarker_id=detail.id
+	    for column in query_trackpoint.all():
+		column.infomarker=True
+		session.commit()
+	    infomarker_id=trkpt_detail.id
 	i=i+1
     return infomarker_id	
 	    

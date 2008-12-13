@@ -67,9 +67,9 @@ def main(basepath):
 			pass 
 	    except IOError:
 		print 'no trackfile in trackfile-directory!'
-	    Session,db_blog,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_infomarker,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
+	    Session,db_log,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
 	    tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,Session,db_timezone)
-	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail)
+	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
 	    geo_functions.geotag(imagepath,trackpath)
 	    tags='simpletag "double tag" anothersimpletag'
 	    image_functions.img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)

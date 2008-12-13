@@ -1,3 +1,4 @@
 + add more flickr-relevant input-fields to the creator-interface(image-title or country, image-description, tags,...)
 + photohashing for replacing photos(needs implementation on client-side)
 + ignore geotagging of photos with no matching trackpoint
++ more efficient queries for query_wte and get_country(Don't ask for every Trackpoint if nothing has changed between the first and the last)

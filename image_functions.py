@@ -72,8 +72,8 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags
             imageinfo_detail=detail
             print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
     else:
-        #trackpoints are unique, insert them now
-        session.add(db_imageinfo(None,None,infomarker_id,photoset_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,photohash))
+        #Image are unique, insert them now
+        session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,photohash))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail 

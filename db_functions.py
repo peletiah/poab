@@ -13,28 +13,26 @@ def initdatabase(pg_user,pg_passwd):
 
     ####### BLOG ########
 
-    blog_table = sa.Table("log", meta,
+    log_table = sa.Table("log", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
-        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
         sa.Column("createdate", types.TIMESTAMP(timezone=True)),
         )
 
-    class blog(object):
+    class log(object):
         def __str(self):
             return self.title
 
-        def __init__(self,trackpoint_id,country_id,topic,content,createdate):
+        def __init__(self,trackpoint_id,topic,content,createdate):
             self.trackpoing_id = trackpoint_id
-            self.country_id = country_id
             self.topic = topic
             self.content = content
             self.createdate = createdate
 
         def __repr__(self):
-            return "<blog('%s','%s','%s','%s','%s',)>" % (self.trackpoint_id,self.country_id,self.topic,self.content,self.createdate)
+            return "<log('%s','%s','%s','%s',)>" % (self.trackpoint_id,self.topic,self.content,self.createdate)
 
 
     ####### COMMENT ########
@@ -142,8 +140,8 @@ def initdatabase(pg_user,pg_passwd):
     imageinfo_table = sa.Table("imageinfo", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("log_id", types.Integer, ForeignKey('log.id')),
-        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("photoset_id", types.Integer, ForeignKey('photosets.id')),
+        sa.Column("infomarker_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("flickrfarm", types.VARCHAR(256)),
         sa.Column("flickrserver", types.VARCHAR(256)),
@@ -157,10 +155,10 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,country_id,photoset_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
+        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
             self.log_id = log_id
-            self.country_id = country_id
             self.photoset_id = photoset_id
+            self.infomarker_id = infomarker_id
             self.trackpoint_id = trackpoint_id
             self.flickrfarm = flickrfarm
             self.flickrserver = flickrserver
@@ -170,7 +168,7 @@ def initdatabase(pg_user,pg_passwd):
             self.photohash = photohash
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.country_id,self.photoset_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
 
 
     ####### TRACK ########
@@ -206,6 +204,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("track_id", types.Integer, ForeignKey('track.id')),
         sa.Column("timezone_id", types.Integer, ForeignKey('timezone.id')),
+        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("latitude", types.Numeric(9,7)),
         sa.Column("longitude", types.Numeric(10,7)),
         sa.Column("altitude", types.Integer),
@@ -214,15 +213,17 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("direction", types.Integer),
         sa.Column("pressure", types.Integer),
         sa.Column("timestamp", types.TIMESTAMP(timezone=True)),
+        sa.Column("infomarker", types.Boolean, default=False),
         )
 
     class trackpoint(object):
         def __str(self):
             return self.title
 
-        def __init__(self,track_id,timezone_id,latitude,longitude,altitude,velocity,temperature,direction,pressure,timestamp):
+        def __init__(self,track_id,timezone_id,country_id,latitude,longitude,altitude,velocity,temperature,direction,pressure,timestamp,infomarker):
             self.track_id = track_id
             self.timezone_id = timezone_id
+	    self.country_id = country_id
             self.latitude = latitude
             self.longitude = longitude
             self.altitude = altitude
@@ -231,9 +232,10 @@ def initdatabase(pg_user,pg_passwd):
             self.direction = direction
             self.pressure = pressure
             self.timestamp = timestamp
+	    self.infomarker = infomarker
 
         def __repr__(self):
-            return "<trackpoint('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.track_id,self.timezone_id,self.latitude,self.longitude,self.altitude,self.velocity,self.temperature,self.direction,self.pressure,self.timestamp)
+            return "<trackpoint('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.track_id,self.timezone_id,self.country_id,self.latitude,self.longitude,self.altitude,self.velocity,self.temperature,self.direction,self.pressure,self.timestamp, self.infomarker)
 
 
     ####### TIMEZONE ########
@@ -307,8 +309,8 @@ def initdatabase(pg_user,pg_passwd):
 
 
 
-    orm.mapper(blog, blog_table,
-        order_by=[blog_table.c.id.desc()])
+    orm.mapper(log, log_table,
+        order_by=[log_table.c.id.desc()])
 
     orm.mapper(comments, comment_table,
         order_by=[comment_table.c.id.desc()])
@@ -343,6 +345,6 @@ def initdatabase(pg_user,pg_passwd):
 
 
     Session=orm.sessionmaker(bind=engine)
-    return Session,blog,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
+    return Session,log,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
 
 

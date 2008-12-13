@@ -1,2 +1,4 @@
 credentials.ini
 *.pyc
+*.dia~
+*.autosave

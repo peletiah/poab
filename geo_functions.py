@@ -42,6 +42,7 @@ def query_wte(wteapi_key,lat,long):
     return tzdetails
 
 def get_timezone(trackpath,wteapi_key,Session,db_timezone):
+    print 'FUNCTION GET_TIMEZONE'
 ######################### replace this shit by worldtimeengine-query when finished #############
     tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
@@ -130,6 +131,7 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
 
 
 def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoint,db_timezone,tz_detail):
+    print 'FUNCTION GPX2DATABASE'
     session=Session()
     i=1
     trk_ptnum=dict()
@@ -151,7 +153,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
 	    trackSegments = root.getiterator("{%s}trkseg"%gpx_ns)
 	    
 	    for trk in fulltrack:
-		print i
+		print 'gpxfile trk no.' + str(i)
 		track_desc=trk.find('{%s}desc'% gpx_ns).text #get the desc-tag from the gpx-file
 		trk_ptnum[i]=trk_ptnum[i-1]+int(track_desc.split()[3][:-1])	     #cut out the value from the string e.g. "Total track points: 112."
 		trk_rspan=track_desc.split()[6][:-1]	     #cut out the value from the string e.g. "Total time: 0h18m25s."
@@ -244,6 +246,12 @@ def gpx2database(trackpath,wteapi_key,Session,db_infomarker,db_track,db_trackpoi
 	    
 
 def geotag(imagepath,trackpath):#geotag the pictures in imagepath with data from gpxfile
+    print 'FUNCTION GEOTAG:'
+    #we have to check if the pictures are already geotagged
+    if os.popen("/usr/bin/jhead -exifmap "+imagepath+"*|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines():
+	print 'Pictures are already geotagged - deleting the geotags'
+	os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
+
     if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 > /var/log/poab/geotag.log 2>&1") == 0:
 	pass
     else:

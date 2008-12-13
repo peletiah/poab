@@ -102,6 +102,7 @@ def img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secre
 		    #image not on flickr and db, initiate upload
                     flickrphotoid=talk2flickr.imgupload(imagepath+image,'testtitle','testdescription',tags)
                     farm,server,flickrphotoid,secret,originalformat,date_taken,tags,url = talk2flickr.getimginfo(flickrphotoid)
+		    talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
                 except AttributeError:
                     print 'A AttributeError occured'
 	    #add photoset

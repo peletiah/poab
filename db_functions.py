@@ -15,7 +15,7 @@ def initdatabase(pg_user,pg_passwd):
 
     blog_table = sa.Table("log", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
-        sa.Column("marker_id", types.Integer, ForeignKey('infomarker.id')),
+        sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
@@ -26,15 +26,15 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,marker_id,country_id,topic,content,createdate):
-            self.marker_id = marker_id
+        def __init__(self,trackpoint_id,country_id,topic,content,createdate):
+            self.trackpoing_id = trackpoint_id
             self.country_id = country_id
             self.topic = topic
             self.content = content
             self.createdate = createdate
 
         def __repr__(self):
-            return "<blog('%s','%s','%s','%s','%s',)>" % (self.marker_id,self.country_id,self.topic,self.content,self.createdate)
+            return "<blog('%s','%s','%s','%s','%s',)>" % (self.trackpoint_id,self.country_id,self.topic,self.content,self.createdate)
 
 
     ####### COMMENT ########
@@ -143,7 +143,6 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("log_id", types.Integer, ForeignKey('log.id')),
         sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
-        sa.Column("infomarker_id", types.Integer, ForeignKey('infomarker.id')),
         sa.Column("photoset_id", types.Integer, ForeignKey('photosets.id')),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("flickrfarm", types.VARCHAR(256)),
@@ -158,10 +157,9 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,country_id,infomarker_id,photoset_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
+        def __init__(self,log_id,country_id,photoset_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
             self.log_id = log_id
             self.country_id = country_id
-            self.infomarker_id = infomarker_id
             self.photoset_id = photoset_id
             self.trackpoint_id = trackpoint_id
             self.flickrfarm = flickrfarm
@@ -172,25 +170,7 @@ def initdatabase(pg_user,pg_passwd):
             self.photohash = photohash
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.country_id,self.infomarker_id,self.photoset_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
-
-
-    ####### INFOMARKER ########
-
-    infomarker_table = sa.Table("infomarker", meta,
-        sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
-        sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
-        )
-
-    class infomarker(object):
-        def __str(self):
-            return self.title
-
-        def __init__(self,trackpoint_id):
-            self.trackpoint_id = trackpoint_id
-
-        def __repr__(self):
-            return "<infomarker('%s')>" % (self.trackpoint_id)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.country_id,self.photoset_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
 
 
     ####### TRACK ########
@@ -345,9 +325,6 @@ def initdatabase(pg_user,pg_passwd):
     orm.mapper(imageinfo, imageinfo_table,
         order_by=[imageinfo_table.c.id.desc()])
  
-    orm.mapper(infomarker, infomarker_table,
-        order_by=[infomarker_table.c.id.desc()])
-
     orm.mapper(track, track_table,
         order_by=[track_table.c.id.desc()])
 
@@ -366,6 +343,6 @@ def initdatabase(pg_user,pg_passwd):
 
 
     Session=orm.sessionmaker(bind=engine)
-    return Session,blog,comments,continent,country,photosets,imageinfo,infomarker,track,trackpoint,timezone,image2tag,phototag
+    return Session,blog,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
 
 

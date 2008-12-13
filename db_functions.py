@@ -16,7 +16,7 @@ def initdatabase(pg_user,pg_passwd):
     blog_table = sa.Table("log", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("marker_id", types.Integer, ForeignKey('infomarker.id')),
-        sa.Column("country_id", types.Integer, ForeignKey('country.iso_nationalcode')),
+        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
         sa.Column("createdate", types.TIMESTAMP(timezone=True)),
@@ -86,19 +86,23 @@ def initdatabase(pg_user,pg_passwd):
     ####### COUNTRY ########
 
     country_table = sa.Table("country", meta,
-        sa.Column("iso_nationalcode", types.Integer, primary_key=True),
+        sa.Column("iso_numcode", types.Integer, primary_key=True),
         sa.Column("continent_id", types.Integer, ForeignKey('continent.id')),
-        sa.Column("iso_countryname",types.VARCHAR(128))
+        sa.Column("iso_countryname",types.VARCHAR(128)),
+        sa.Column("iso3_nationalcode",types.VARCHAR(3)),
+        sa.Column("flickr_countryname",types.VARCHAR(128))
         )
 
     class country(object):
-        def __init__(self,iso_nationalcode,continent_id,iso_countryname):
-            self.iso_nationalcode = iso_nationalcode
+        def __init__(self,iso_numcode,continent_id,iso_countryname,iso3_countrycode,flickr_countryname):
+            self.iso_numcode = iso_numcode
             self.continent_id = continent_id
             self.iso_countryname = iso_countryname
+            self.iso3_countryocde = iso3_countrycode
+            self.flickr_countryname = flickr_countryname
 
         def __repr__(self):
-            return "<country_table('%s','%s','%s')>" % (self.iso_nationalcode,self.continent_id,self.iso_countryname)
+            return "<country_table('%s','%s','%s','%s','%s')" % (self.iso_numcode,self.continent_id,self.iso_countryname,self.iso3_countrycode,self.flickr_countryname)
 
 
         def __str(self):
@@ -138,7 +142,7 @@ def initdatabase(pg_user,pg_passwd):
     imageinfo_table = sa.Table("imageinfo", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("log_id", types.Integer, ForeignKey('log.id')),
-        sa.Column("country_id", types.Integer, ForeignKey('country.iso_nationalcode')),
+        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
         sa.Column("infomarker_id", types.Integer, ForeignKey('infomarker.id')),
         sa.Column("photoset_id", types.Integer, ForeignKey('photosets.id')),
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
@@ -333,7 +337,7 @@ def initdatabase(pg_user,pg_passwd):
         order_by=[continent_table.c.id.desc()])
 
     orm.mapper(country, country_table,
-        order_by=[country_table.c.iso_nationalcode.desc()])
+        order_by=[country_table.c.iso_numcode.desc()])
 
     orm.mapper(photosets, photoset_table,
         order_by=[photoset_table.c.id.desc()])

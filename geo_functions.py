@@ -40,6 +40,7 @@ def query_wte(wteapi_key,lat,long):
     f = urllib.urlopen("http://worldtimeengine.com/api/"+wteapi_key+"/"+str(lat)+"/"+str(long))
     tzdetails=f.read()
     f.close()
+    print tzdetails
     return tzdetails
 
 def get_timezone(trackpath,wteapi_key,Session,db_timezone):
@@ -93,9 +94,9 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
     #we find out the timezone by getting the timezone for the first and the last coordinate of our trackfiles
     trkptlist=gentrkptlist(trackpath)
     lat,long=trkptlist[0] #first point in the track
-    #tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
+#    tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
     lat,long=trkptlist[-1] #last point in the track
-    #tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
+#    tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
     
     if (tzdetailsfirst.xpath('//utcoffset')[0]).text == (tzdetailslast.xpath('//utcoffset')[0]).text:
 	tz_utcoffset=(tzdetailslast.xpath('//utcoffset')[0]).text

@@ -4,6 +4,10 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy import types
 from sqlalchemy import ForeignKey
+import datetime
+
+def now():
+    return datetime.datetime.now()
 
 
 def initdatabase(pg_user,pg_passwd):
@@ -18,7 +22,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
-        sa.Column("createdate", types.TIMESTAMP(timezone=True)),
+        sa.Column("createdate", types.TIMESTAMP(timezone=True),default=now()),
         )
 
     class log(object):

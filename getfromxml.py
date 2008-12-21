@@ -35,27 +35,24 @@ def parsexml(xmlfile):
     logtext =  (tree.xpath('//logtext')[0]).text.replace("&gt;",">").replace("&lt;","<")
     filepath =  (tree.xpath('//filepath')[0]).text
     photosetname =  (tree.xpath('//photoset')[0]).text
-    i=1
-    imglist=dict()
-    while i < 100:
-	try:
-	    imglist[i]=(tree.xpath('//img'+str(i))[0]).text
-	    i=i+1
-	except IndexError:
-	    i=i+1
-	    pass
-    return topic,logtext,filepath,photosetname,imglist		
+    i=0
+    xmlimglist=list()
+    query_xmlimglist='//img'
+    for element in tree.xpath(query_xmlimglist):
+	xmlimglist.append(tree.xpath(query_xmlimglist).text
+	i=i+1
+    return topic,logtext,filepath,photosetname,xmlimglist		
 
 def main(basepath):
     pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):
-	    topic,logtext,filepath,photosetname,imglist=parsexml(xmlfile)
+	    topic,logtext,filepath,photosetname,xmlimglist=parsexml(xmlfile)
 				# topic - topic of the log-entry
 				# logtext - content-text of the log-entry
 				# filepath - where are the files belonging to this xml-file situated 
 				# photosetname - name of the set for flickr
-				# imglist - list of the images in the xml
+				# xmlimglist - list of the images in the xml
 	    imagepath=filepath+'images_sorted/'
 	    try:
 		trackpath=filepath+'trackfile/'
@@ -72,7 +69,8 @@ def main(basepath):
 	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
 	    geo_functions.geotag(imagepath,trackpath)
 	    tags='simpletag "double tag" anothersimpletag'
-	    image_functions.img2flickr(imagepath,imglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
+	    imgdict=image_functions.img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
+#	    log_functions.log2db(topic,logtext,imgdict,infomarker_id,photoid,flickrfarm,flickrserver,flickrphotoid,flickrsecret,Session,db_log)
 
 main(basepath)
 

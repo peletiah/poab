@@ -71,13 +71,13 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags
 	    if query_imagesetid.count() == 1:
 		print 'Everything is fine, photoset is set for the image'
 	    elif query_imagesetid.count() == 0:
-		if imageinfo_detail.photoset_id == 0:		    
+		if imageinfo_detail.photoset_id == None:		    
 		    print 'flickrphotoset not in the image-record, updating image-record now'
 		    for column in query_imageinfo.all():
 			column.photoset_id=photoset_id
 			session.commit()
-		    else:
-			print 'hmm, the current photoset_id in img2database and the entry in the db don\'t match, photoset_id is: ' + str(photoset_id) + ', db_entry is:' + str(imageinfo_detail.photoset_id)
+		else:
+		    print 'there is a photoset-id-entry in the record, but it\'s different to what i was told, photoset_id is: ' + str(photoset_id) + ', db_entry is:' + str(imageinfo_detail.photoset_id)
     elif query_imageinfo.count() > 1:
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
@@ -94,7 +94,7 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags
 def img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
     filetypes=('.png','.jpg','.jpeg','.gif')
     session=Session()
-    imgdict=dict()
+    imglist=list()
     for image in os.listdir(imagepath):
 	print 'imagename=' + image
         if image.lower().endswith(filetypes):
@@ -137,15 +137,27 @@ def img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_se
                 server=imageinfo_detail.flickrserver
                 flickrphotoid=imageinfo_detail.flickrphotoid
                 secret=imageinfo_detail.flickrsecret
-	#append imageinfo_detail to imgdict for the images in xmlimglist
+	#append imageinfo_detail to imglist for the images in xmlimglist
 	for xmlimg in xmlimglist:
 	    if xmlimg==image:
-		imgdict[image]=imageinfo_detail
-
-    return imgdict		
-
+		imglist.append(imageinfo_detail)
+    return imglist	
 
 
+def logid2images(log_detail,imglist,Session,db_imageinfo):
+    session=Session()
+    for imageinfo_detail in imglist:
+	query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.id==imageinfo_detail.id)
+	query_imagelogid=session.query(db_imageinfo).filter(and_(db_imageinfo.id==imageinfo_detail.id,db_imageinfo.log_id==log_detail.id))
+	if query_imagelogid.count() == 1:
+	    print 'Everything is fine, log_id is set for this image record'
+	elif query_imagelogid.count() == 0:
+	    print 'log_id not in the image-record, updating image-record now'
+	    for column in query_imageinfo.all():
+		column.log_id=log_detail.id
+		session.commit()
+	    
+	    
 
 
 

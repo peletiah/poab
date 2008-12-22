@@ -15,11 +15,11 @@ def initdatabase(pg_user,pg_passwd):
 
     meta = sa.MetaData()
 
-    ####### BLOG ########
+    ####### LOG ########
 
     log_table = sa.Table("log", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
-        sa.Column("trackpoint_id", types.Integer, ForeignKey('trackpoint.id')),
+        sa.Column("infomarker_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
         sa.Column("createdate", types.TIMESTAMP(timezone=True),default=now()),
@@ -29,14 +29,14 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,trackpoint_id,topic,content,createdate):
-            self.trackpoing_id = trackpoint_id
+        def __init__(self,infomarker_id,topic,content,createdate):
+            self.infomarker_id = infomarker_id
             self.topic = topic
             self.content = content
             self.createdate = createdate
 
         def __repr__(self):
-            return "<log('%s','%s','%s','%s',)>" % (self.trackpoint_id,self.topic,self.content,self.createdate)
+            return "<log('%s','%s','%s','%s',)>" % (self.infomarker_id,self.topic,self.content,self.createdate)
 
 
     ####### COMMENT ########

@@ -14,6 +14,7 @@ from sqlalchemy import and_
 import re
 from decimal import Decimal
 import decimal
+import log_functions #custom
 
 basepath='/srv/trackdata/bydate/'
 
@@ -35,12 +36,10 @@ def parsexml(xmlfile):
     logtext =  (tree.xpath('//logtext')[0]).text.replace("&gt;",">").replace("&lt;","<")
     filepath =  (tree.xpath('//filepath')[0]).text
     photosetname =  (tree.xpath('//photoset')[0]).text
-    i=0
     xmlimglist=list()
     query_xmlimglist='//img'
     for element in tree.xpath(query_xmlimglist):
-	xmlimglist.append(tree.xpath(query_xmlimglist).text
-	i=i+1
+	xmlimglist.append(element.text)
     return topic,logtext,filepath,photosetname,xmlimglist		
 
 def main(basepath):
@@ -69,8 +68,9 @@ def main(basepath):
 	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
 	    geo_functions.geotag(imagepath,trackpath)
 	    tags='simpletag "double tag" anothersimpletag'
-	    imgdict=image_functions.img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
-#	    log_functions.log2db(topic,logtext,imgdict,infomarker_id,photoid,flickrfarm,flickrserver,flickrphotoid,flickrsecret,Session,db_log)
+	    imglist=image_functions.img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
+	    log_detail=log_functions.log2db(topic,logtext,imglist,infomarker_id,Session,db_log)
+	    image_functions.logid2images(log_detail,imglist,Session,db_imageinfo)
 
 main(basepath)
 

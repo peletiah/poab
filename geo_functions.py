@@ -50,46 +50,64 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
     <version>1.1</version>
     <location>
-        <region>Taiwan</region>
-        <latitude>25.0684016</latitude>
-        <longitude>121.6382592</longitude>
+        <region>Austria</region>
+        <latitude>47.160992</latitude>
+        <longitude>11.5210216</longitude>
     </location>
     <time>
-        <utc>2008-11-28 21:35:12</utc>
-        <local>2008-11-29 05:35:12</local>
+        <utc>2008-12-30 15:45:32</utc>
+        <local>2008-12-30 16:45:32</local>
         <zone>
-            <hasDST>false</hasDST>
+            <hasDST>true</hasDST>
             <current>
-                <abbreviation>CST</abbreviation>
-                <description>Chinese Standard Time</description>
-                <utcoffset>-8:00</utcoffset>
+                <abbreviation>CET</abbreviation>
+                <description>Central European Time</description>
+                <utcoffset>+1:00</utcoffset>
+                <isdst>false</isdst>
+                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
             </current>
+            <next>
+                <abbreviation>CEST</abbreviation>
+                <description>Central European Summer Time</description>
+                <utcoffset>+2:00</utcoffset>
+                <isdst>true</isdst>
+                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
+            </next>
         </zone>
     </time>
 </timezone>''')
-
+#
     tzdetailslast=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
 <timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
     <version>1.1</version>
     <location>
-        <region>Taiwan</region>
-        <latitude>24.9993056</latitude>
-        <longitude>121.49152</longitude>
+        <region>Austria</region>
+        <latitude>47.160992</latitude>
+        <longitude>11.5210216</longitude>
     </location>
     <time>
-        <utc>2008-11-28 21:35:12</utc>
-        <local>2008-11-29 05:35:12</local>
+        <utc>2008-12-30 15:45:32</utc>
+        <local>2008-12-30 16:45:32</local>
         <zone>
-            <hasDST>false</hasDST>
+            <hasDST>true</hasDST>
             <current>
-                <abbreviation>CST</abbreviation>
-                <description>Chinese Standard Time</description>
-                <utcoffset>-8:00</utcoffset>
+                <abbreviation>CET</abbreviation>
+                <description>Central European Time</description>
+                <utcoffset>+1:00</utcoffset>
+                <isdst>false</isdst>
+                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
             </current>
+            <next>
+                <abbreviation>CEST</abbreviation>
+                <description>Central European Summer Time</description>
+                <utcoffset>+2:00</utcoffset>
+                <isdst>true</isdst>
+                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
+            </next>
         </zone>
     </time>
 </timezone>''')
-    ################################################################################
+#    ################################################################################
 
     #we find out the timezone by getting the timezone for the first and the last coordinate of our trackfiles
     trkptlist=gentrkptlist(trackpath)
@@ -200,6 +218,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 		    except AttributeError:
 			temperature=None
 			pressure=None
+		    print lat,lon
 		    trkpts.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
 		    latlonlist.append((float(lat),float(lon)))
     
@@ -265,7 +284,8 @@ def geotag(imagepath,trackpath):#geotag the pictures in imagepath with data from
     if os.popen("/usr/bin/jhead -exifmap "+imagepath+"*|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines():
 	print 'Pictures are already geotagged - deleting the geotags'
 	os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
-
+    else:
+	print 'jhead didn\'t work'
     if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 > /var/log/poab/geotag.log 2>&1") == 0:
 	pass
     else:

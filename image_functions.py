@@ -91,7 +91,7 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags
 	    print 'Imageentry created! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
     return imageinfo_detail 
 
-def img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
+def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
     filetypes=('.png','.jpg','.jpeg','.gif')
     session=Session()
     imglist=list()
@@ -119,7 +119,7 @@ def img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_se
 	    else:
                 try:
 		    #image not on flickr and db, initiate upload
-                    flickrphotoid=talk2flickr.imgupload(imagepath+image,'testtitle','testdescription',tags)
+                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,photodescription,tags)
                     farm,server,flickrphotoid,secret,originalformat,date_taken,flickr_tags,url = talk2flickr.getimginfo(flickrphotoid)
 		    print flickr_tags
 		    talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
@@ -146,6 +146,7 @@ def img2flickr(imagepath,xmlimglist,photosetname,tags,flickrapi_key,flickrapi_se
 
 def logid2images(log_detail,imglist,Session,db_imageinfo):
     session=Session()
+    print imglist
     for imageinfo_detail in imglist:
 	query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.id==imageinfo_detail.id)
 	query_imagelogid=session.query(db_imageinfo).filter(and_(db_imageinfo.id==imageinfo_detail.id,db_imageinfo.log_id==log_detail.id))
@@ -156,10 +157,4 @@ def logid2images(log_detail,imglist,Session,db_imageinfo):
 	    for column in query_imageinfo.all():
 		column.log_id=log_detail.id
 		session.commit()
-	    
-	    
-
-
-
-
-
+    print 'logid2images DONE'

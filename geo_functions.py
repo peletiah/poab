@@ -194,8 +194,12 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 			    velocity=value.split('=')[1][:-4]
 			elif value.split('=')[0] == 'Course':
 			    direction=value.split('=')[1][:-4]
-		    temperature=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Temperature" % (gpx_ns,ext_ns,ext_ns)).text
-		    pressure=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Pressure" % (gpx_ns,ext_ns,ext_ns)).text
+		    try:
+			temperature=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Temperature" % (gpx_ns,ext_ns,ext_ns)).text
+			pressure=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Pressure" % (gpx_ns,ext_ns,ext_ns)).text
+		    except AttributeError:
+			temperature=None
+			pressure=None
 		    trkpts.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
 		    latlonlist.append((float(lat),float(lon)))
     
@@ -208,7 +212,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
     gencpoly=glineenc.encode_pairs(latlonlist)
 
     trkpt_1ts=trkpts[0][7] #first timestamp in the trackpoint-list
-    query_track=session.query(db_track).filter(and_(db_track.date==trkpt_1ts,db_track.trkptnum==trk_ptnumtotal,db_track.distance==trk_distancetotal,db_track.timespan==trk_spantotal,db_track.gencpoly_pts==gencpoly[0],db_track.gencpoly_levels==gencpoly[1]))
+    query_track=session.query(db_track).filter(and_(db_track.date==trkpt_1ts,db_track.trkptnum==trk_ptnumtotal,db_track.distance==trk_distancetotal,db_track.timespan==trk_spantotal,db_track.gencpoly_pts==gencpoly[0].replace('\\','\\\\'),db_track.gencpoly_levels==gencpoly[1]))
     if query_track.count() == 1:
 	for detail in query_track.all():
 	    track_detail=detail
@@ -218,7 +222,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 	    track_detail=detail
 	    print 'more than one track found! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
     else:
-        session.add(db_track(trkpt_1ts,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0],gencpoly[1]))
+        session.add(db_track(trkpt_1ts,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1]))
 	session.commit()
     	for detail in query_track.all():
 	    track_detail=detail

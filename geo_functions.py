@@ -235,7 +235,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
     if query_track.count() == 1:
 	for detail in query_track.all():
 	    track_detail=detail
-	    print 'track found - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
+	    print 'track found - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
     elif query_track.count() > 1:
 	for detail in query_track.all():
 	    track_detail=detail
@@ -245,7 +245,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 	session.commit()
     	for detail in query_track.all():
 	    track_detail=detail
-	    print 'track created! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
+	    print 'track created! - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
 
     i=0
     for trkpt in trkpts:
@@ -281,6 +281,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 def geotag(imagepath,trackpath):#geotag the pictures in imagepath with data from gpxfile
     print 'FUNCTION GEOTAG:'
     #we have to check if the pictures are already geotagged
+    print imagepath
     if os.popen("/usr/bin/jhead -exifmap "+imagepath+"*|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines():
 	print 'Pictures are already geotagged - deleting the geotags'
 	os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --delete-geotag > /var/log/poab/geotag.log 2>&1")

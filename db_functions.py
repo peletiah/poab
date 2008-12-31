@@ -152,6 +152,8 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("flickrphotoid", types.VARCHAR(256)),
         sa.Column("flickrsecret", types.VARCHAR(256)),
         sa.Column("flickrdatetaken", types.TIMESTAMP(timezone=True)),
+        sa.Column("flickrtitle", types.VARCHAR(256)),
+        sa.Column("flickrdescription", types.UnicodeText),
         sa.Column("photohash", types.VARCHAR(256)),
         )
 
@@ -159,7 +161,7 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,photohash):
+        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash):
             self.log_id = log_id
             self.photoset_id = photoset_id
             self.infomarker_id = infomarker_id
@@ -169,10 +171,12 @@ def initdatabase(pg_user,pg_passwd):
             self.flickrphotoid = flickrphotoid
             self.flickrsecret = flickrsecret
             self.flickrdatetaken = flickrdatetaken
+            self.flickrtitle = flickrtitle
+            self.flickrdescription = flickrdescription
             self.photohash = photohash
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.photohash)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash)
 
 
     ####### TRACK ########
@@ -272,20 +276,20 @@ def initdatabase(pg_user,pg_passwd):
     image2tag_table = sa.Table("image2tag", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("imageinfo_id", types.Integer, ForeignKey('imageinfo.id')),
-        sa.Column("timezone_id", types.Integer, ForeignKey('timezone.id')),
+        sa.Column("phototag_id", types.Integer, ForeignKey('phototag.id')),
         )
 
     class image2tag(object):
         def __str(self):
            return self.title
 
-        def __init__(self,imageinfo_id,timezone_id):
+        def __init__(self,imageinfo_id,phototag_id):
             self.imageinfo_id = imageinfo_id
-            self.timezone_id = timezone_id
+            self.phototag_id = phototag_id
 
 
         def __repr__(self):
-            return "<image2tag('%s','%s')>" % (self.imageinfo_id,self.timezone_id)
+            return "<image2tag('%s','%s')>" % (self.imageinfo_id,self.phototag_id)
 
 
     ####### PHOTOTAG ########

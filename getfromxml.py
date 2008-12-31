@@ -44,7 +44,7 @@ def parsexml(xmlfile):
     for element in tree.xpath(query_xmlimglist):
 	xmlimglist.append(element.text)
     query_xmltaglist='//tag'
-    for element in tree.xpath(query_xmlimglist):
+    for element in tree.xpath(query_xmltaglist):
 	xmltaglist.append(element.text)
 
     return topic,logtext,filepath,photosetname,photodescription,phototitle,xmlimglist,xmltaglist		
@@ -71,7 +71,7 @@ def main(basepath):
 		    print trackfile
 		    if trackfile.lower().endswith('.tk1'):
 			#passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
-			if os.path.exists(trackpath+trackfile[:-3]+'gpx'):
+			if os.path.exists(trackpath+trackfile[:-3]+'gpx'): # is there already a gpx-file with this name?
 			    print 'gpx-file already exists, passing'
 			else:
 			    tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
@@ -84,7 +84,7 @@ def main(basepath):
 	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
 	    geo_functions.geotag(imagepath,trackpath)
 	    imglist=image_functions.img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
-	    print 'log_functions'
+	    print imglist
 	    log_detail=log_functions.log2db(topic,logtext,imglist,infomarker_id,Session,db_log)
 	    print 'image_functions'
 	    image_functions.logid2images(log_detail,imglist,Session,db_imageinfo)

@@ -18,6 +18,10 @@ flickr = flickrapi.FlickrAPI(api_key, api_secret, format='etree')
 def imgupload(filename,title,description,tags):
     try:
         # coding=utf-8
+	if tags:
+	    pass
+	else:
+	    tags=''
         result=flickr.upload(filename=filename,title=title,description=description,tags=tags)
         result_xml=etree.fromstring(result.xml)
         query_photoid='//photoid'
@@ -71,6 +75,15 @@ def photoset_addphoto(photoset_id,photoid):
  	sys.stderr.write("%s\n" % (value, ))
 	sys.exit(1)                         
 
+
+def addtags(photoid,tags):
+    try:
+	result=flickr.photos_addTags(photo_id=photoid,tags=tags)
+	return result
+    except flickrapi.FlickrError, (value):
+        sys.stderr.write("%s\n" % (value, ))
+        sys.exit(1)
+
 def getimginfo(photoid):
     try:
         photoinfo=flickr.photos_getInfo(photo_id=photoid)
@@ -88,7 +101,7 @@ def getimginfo(photoid):
         for tag in photoinfo.find('photo/tags'):
 	   tags.append((tag.attrib['id'],tag.attrib['author'],tag.attrib['raw']))
         url=photoinfo.find('photo/urls/url').text 
-	return(farm,server,photoid,secret,originalformat,date_taken,tags,url)
+	return(farm,server,photoid,secret,originalformat,date_taken,tags,url,title,description)
     except flickrapi.FlickrError, (value):
 	sys.stderr.write("%s\n" % (value, ))
 	sys.exit(1)

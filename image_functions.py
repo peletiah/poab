@@ -50,17 +50,17 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
             print 'Photoset duplicate found! - id:'+ str(photoset_detail.id) + ' - details:' + str(photoset_detail)
     else:
         #photoset does not yet exist, create at flickr and insert in the db
-	flickr_photosetid=talk2flickr.create_photoset(photosetname,'stuff from the road',flickrphotoid)
+	flickr_photosetid=talk2flickr.create_photoset(photosetname,'example content',flickrphotoid)
 	owner,primary,count,title,description=talk2flickr.get_photosetinfo(flickr_photosetid)
         session.add(db_photosets(flickr_photosetid,owner,primary,count,title,description))
         session.commit()
         for detail in query_photoset.all():
             photoset_detail=detail
-            print 'Photoset created! - id:'+ str(photoset_detail.id) + ' - details:' + str(photoset_detail)
+            print 'Photoset created! - id:'+ str(photoset_detail.id)
     return photoset_detail.id
 
     
-def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash):
+def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash):
     session=Session()
     query_imageinfo=session.query(db_imageinfo).filter(and_(db_imageinfo.infomarker_id==infomarker_id,db_imageinfo.trackpoint_id==trackpoint_id,db_imageinfo.flickrfarm==farm,db_imageinfo.flickrserver==server,db_imageinfo.flickrphotoid==flickrphotoid,db_imageinfo.flickrsecret==secret,db_imageinfo.flickrdatetaken==date_taken))
     if query_imageinfo.count() == 1:
@@ -84,32 +84,69 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags
             print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
     else:
         #Image are unique, insert them now
-        session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,photohash))
+        session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
-	    print 'Imageentry created! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
+	    print 'Imageentry created! - id:'+ str(imageinfo_detail.id)
     return imageinfo_detail 
 
+
+
+def tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image2tag):
+    session=Session()
+    for tag in xmltaglist:
+	query_phototag=session.query(db_phototag).filter(db_phototag.tag==tag)
+	if query_phototag.count() >= 1:
+	    for detail in query_phototag.all():
+		phototag_id=detail.id
+	    talk2flickr.addtags(flickrphotoid,tag)
+	    session.add(db_image2tag(photoid,phototag_id))
+	    session.commit()
+	    pass
+	else:
+	    talk2flickr.addtags(flickrphotoid,tag)
+	    session.add(db_phototag(tag,None))
+	    session.commit()
+	    for detail in query_phototag.all():
+		phototag_id=detail.id
+	    session.add(db_image2tag(photoid,phototag_id))
+	    session.commit()
+
 def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
-    filetypes=('.png','.jpg','.jpeg','.gif')
+    filetypes=('.png','.jpg','.jpeg','.gif','.tif')
     session=Session()
     imglist=list()
     for image in os.listdir(imagepath):
 	print 'imagename=' + image
         if image.lower().endswith(filetypes):
+	    #------------ GEO ------------------
+
             #get the exif-geo-info with jhead
             geoinfo=os.popen("/usr/bin/jhead -exifmap "+imagepath+image+"|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines()
 	    print geoinfo
-            latitude,longitude=geoinfo[0].strip('\n').split(',',1)
-	    query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==latitude,db_trackpoint.longitude==longitude))
-	    trackpoint_id=query_trackpoint.first().id
+	    if geoinfo:
+                latitude,longitude=geoinfo[0].strip('\n').split(',',1)
+		query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==latitude,db_trackpoint.longitude==longitude))
+		trackpoint_id=query_trackpoint.first().id
+	    else:
+		trackpoint_id=None
+	    
+	    #-----------------------------------
+
+	    #------------ HASHING --------------
+
 	    imagefile=open(imagepath+image).read()
 	    photohash=hashlib.sha256(image).hexdigest()
 	    print 'photohash: ' + photohash
 	    print 'photo linked to trackpoint_id: ' + str(trackpoint_id)
 	    #check if the photo already exists
 	    result,imageinfo_detail=checkimgindb(Session,db_imageinfo,photohash)
+
+	    #----------------------------------
+    
+	    #------------ FLICKR --------------
+
 	    if result > 0:
 		#we already have the picture in the database, we extract the info we've found to variables we'll use elsewhere
 		farm=imageinfo_detail.flickrfarm
@@ -119,24 +156,39 @@ def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,pho
 	    else:
                 try:
 		    #image not on flickr and db, initiate upload
-                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,photodescription,tags)
-                    farm,server,flickrphotoid,secret,originalformat,date_taken,flickr_tags,url = talk2flickr.getimginfo(flickrphotoid)
-		    print flickr_tags
+                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,photodescription,None)
 		    talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
                 except AttributeError:
                     print 'A AttributeError occured'
-	    #add photoset
+	
+	    #---------------------------------
+
+	    #----------- PHOTOSET ------------
+
 	    photoset_id=photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname,Session,db_photosets,db_imageinfo)
-	    if result > 0:
-		pass
-	    else:
-		#try adding photo to imageinfo
-		imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,tags,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash)
-		photoid=imageinfo_detail.id
-		farm=imageinfo_detail.flickrfarm
-                server=imageinfo_detail.flickrserver
-                flickrphotoid=imageinfo_detail.flickrphotoid
-                secret=imageinfo_detail.flickrsecret
+
+	    #---------------------------------
+
+	    #----------- IMG2DATABASE --------	   
+ 
+	    #try adding photo to imageinfo
+            farm,server,flickrphotoid,secret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
+	    imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash)
+	    photoid=imageinfo_detail.id
+	    farm=imageinfo_detail.flickrfarm
+	    server=imageinfo_detail.flickrserver
+	    flickrphotoid=imageinfo_detail.flickrphotoid
+            secret=imageinfo_detail.flickrsecret
+
+	    #---------------------------------
+
+	    #----------- TAGS2FLICKRNDB ------
+	   
+	    tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image2tag)
+	    	    
+
+	#------- RETURN IMAGEINFO -------
+
 	#append imageinfo_detail to imglist for the images in xmlimglist
 	for xmlimg in xmlimglist:
 	    if xmlimg==image:

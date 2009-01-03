@@ -37,17 +37,27 @@ def writegmapsfile(gencpoly_pts,gencpoly_levels):
         map.addOverlay(marker);
    }
 
-   function readjson() {
-        $.getJSON("/json_vienna.js", function(json) {
-                for (i=0;i<json.length;i++){
-                        line=json[i];
-                        writegmarker(line[0],line[1],line[2]);
-//                      console.log(line);
-                }
 
-
+    function writepolyline(encpts,enclvl) {
+    var encodedPolyline = new GPolyline.fromEncoded({
+                color: "#FF0000",
+                weight: 5,
+                points: encpts,
+                levels: enclvl,
+                zoomFactor: 32,
+                numLevels: 4
         });
-   }
+        map.addOverlay(encodedPolyline);
+      }
+
+
+   function otfjson(markerlist) {
+        for (var i=0; i<markerlist.length; i++) {
+            writegmarker(markerlist[i].lat,markerlist[i].lon,markerlist[i].gal)
+	    writepolyline(markerlist[i].encpts,markerlist[i].enclvl)
+        }
+    }
+
    function showGallery(gallerylink) {
         new Ajax.Request(gallerylink, {onSuccess: function(response) { document.getElementById('gallery').innerHTML = response.responseText; }});
         }
@@ -69,19 +79,8 @@ def writegmapsfile(gencpoly_pts,gencpoly_levels):
         map.addControl(mapControl);
         map.addControl(new GOverviewMapControl ());
         map.enableScrollWheelZoom();
-        readjson();
-
-var encodedPoints = "''' + gencpoly_pts + '''"
-var encodedLevels = "''' + gencpoly_levels + '''"
-var encodedPolyline = new GPolyline.fromEncoded({
-                color: "#FF0000",
-                weight: 5,
-                points: encodedPoints,
-                levels: encodedLevels,
-                zoomFactor: 32,
-                numLevels: 4
-        });
-        map.addOverlay(encodedPolyline);
+	var markerlist = [{'lat':48.1963808, 'lon':16.3647328, 'gal':"gallery/6", 'encpts':"''' + gencpoly_pts + '''", 'enclvl':"''' + gencpoly_levels + '''"}];
+	otfjson(markerlist);
       }
     }
 

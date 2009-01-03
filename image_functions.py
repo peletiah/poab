@@ -69,7 +69,7 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
 	    print 'Imageentry already exists - id:'+ str(imageinfo_detail.id) + ' details:' + str(imageinfo_detail)
 	    query_imagesetid=session.query(db_imageinfo).filter(and_(db_imageinfo.id==imageinfo_detail.id,db_imageinfo.photoset_id==photoset_id))
 	    if query_imagesetid.count() == 1:
-		print 'Everything is fine, photoset is set for the image'
+		print 'Photoset is already set for the image'
 	    elif query_imagesetid.count() == 0:
 		if imageinfo_detail.photoset_id == None:		    
 		    print 'flickrphotoset not in the image-record, updating image-record now'
@@ -101,8 +101,10 @@ def tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image
 	    for detail in query_phototag.all():
 		phototag_id=detail.id
 	    talk2flickr.addtags(flickrphotoid,tag)
-	    session.add(db_image2tag(photoid,phototag_id))
-	    session.commit()
+	    query_image2tag=session.query(db_image2tag).filter(and_(db_image2tag.imageinfo_id==photoid,db_image2tag.phototag_id==phototag_id))
+	    if query_image2tag.count() == 0:
+		session.add(db_image2tag(photoid,phototag_id))
+		session.commit()
 	    pass
 	else:
 	    talk2flickr.addtags(flickrphotoid,tag)
@@ -110,8 +112,10 @@ def tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image
 	    session.commit()
 	    for detail in query_phototag.all():
 		phototag_id=detail.id
-	    session.add(db_image2tag(photoid,phototag_id))
-	    session.commit()
+	    query_image2tag=session.query(db_image2tag).filter(and_(db_image2tag.imageinfo_id==photoid,db_image2tag.phototag_id==phototag_id))
+	    if query_image2tag.count() == 0:
+		session.add(db_image2tag(photoid,phototag_id))
+		session.commit()
 
 def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')

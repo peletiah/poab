@@ -8,7 +8,7 @@ import db_functions
 def parseimgstrings(logtext,imglist):
     i=1
     for img_detail in imglist:
-	flickrlink='<img src="http://benko.login.cx:8080/flickr/%s/%s/%s/%s">' % (img_detail.flickrfarm,img_detail.flickrserver,img_detail.flickrphotoid,img_detail.flickrsecret)
+	flickrlink='<img src="http://benko.login.cx:8080/flickr/%s/%s/%s/%s/%s">' % (img_detail.flickrfarm,img_detail.flickrserver,img_detail.flickrphotoid,img_detail.flickrsecret,'_m')
 	print flickrlink
 	print imglist
 	print '[img'+str(i)+']'

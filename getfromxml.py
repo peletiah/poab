@@ -38,6 +38,13 @@ def parsexml(xmlfile):
     photosetname =  (tree.xpath('//photoset')[0]).text
     photodescription =  (tree.xpath('//photodescription')[0]).text
     phototitle =  (tree.xpath('//phototitle')[0]).text
+    try:
+        done =  (tree.xpath('//done')[0]).text
+	if done == 'true':
+	    return done
+    except IndexError:
+	pass
+    
     xmlimglist=list()
     xmltaglist=list()
     query_xmlimglist='//img'
@@ -49,45 +56,60 @@ def parsexml(xmlfile):
 
     return topic,logtext,filepath,photosetname,photodescription,phototitle,xmlimglist,xmltaglist		
 
+def finishxml(xmlfile):
+    tree = etree.fromstring(file(basepath+xmlfile,"r").read())
+    query='//log'
+    element = tree.xpath(query)
+    finishtext='''<done>true</done>
+'''
+    element[0].append(etree.fromstring(finishtext))
+    f=file(basepath+xmlfile,"w")
+    f.write(etree.tostring(tree))
+    f.close()
+    tree = etree.fromstring(file(basepath+xmlfile, 'r').read())     
+
 def main(basepath):
     pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
     print basepath
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):
 	    print xmlfile
-	    topic,logtext,filepath,photosetname,photodescription,phototitle,xmlimglist,xmltaglist=parsexml(xmlfile)
-				# topic - topic of the log-entry
-				# logtext - content-text of the log-entry
-				# filepath - where are the files belonging to this xml-file situated 
-				# photosetname - name of the set for flickr
-				# photodescription - description of the photos for flickr
-				# phototitle - title of the photos for flickr
-				# xmlimglist - list of the images in the xml
-				# xmltaglist - list of the images in the xml
-	    imagepath=filepath+'images_sorted/'
-	    try:
-		trackpath=filepath+'trackfile/'
-		for trackfile in os.listdir(trackpath):
-		    print trackfile
-		    if trackfile.lower().endswith('.tk1'):
-			#passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
-			if os.path.exists(trackpath+trackfile[:-3]+'gpx'): # is there already a gpx-file with this name?
-			    print 'gpx-file already exists, passing'
+	    if parsexml(xmlfile) == 'true':
+		pass
+	    else:
+		topic,logtext,filepath,photosetname,photodescription,phototitle,xmlimglist,xmltaglist=parsexml(xmlfile)
+			# topic - topic of the log-entry
+			# logtext - content-text of the log-entry
+			# filepath - where are the files belonging to this xml-file situated 
+			# photosetname - name of the set for flickr
+			# photodescription - description of the photos for flickr
+			# phototitle - title of the photos for flickr
+			# xmlimglist - list of the images in the xml
+			# xmltaglist - list of the images in the xml
+		imagepath=filepath+'images_sorted/'
+		try:
+		    trackpath=filepath+'trackfile/'
+		    for trackfile in os.listdir(trackpath):
+		        print trackfile
+		        if trackfile.lower().endswith('.tk1'):
+			    #passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
+			    if os.path.exists(trackpath+trackfile[:-3]+'gpx'): # is there already a gpx-file with this name?
+			       print 'gpx-file already exists, passing'
+			    else:
+			        tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
 			else:
-			    tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
-		    else:
-			pass 
-	    except IOError:
-		print 'No Trackfile found!'
-	    Session,db_log,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
-	    tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,Session,db_timezone)
-	    infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
-	    geo_functions.geotag(imagepath,trackpath)
-	    imglist=image_functions.img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
-	    print imglist
-	    log_detail=log_functions.log2db(topic,logtext,imglist,infomarker_id,Session,db_log)
-	    print 'image_functions'
-	    image_functions.logid2images(log_detail,imglist,Session,db_imageinfo)
-
+			    pass 
+		except IOError:
+		    print 'No Trackfile found!'
+		Session,db_log,db_comments,db_continent,db_country,db_photosets,db_imageinfo,db_track,db_trackpoint,db_timezone,db_image2tag,db_phototag=db_functions.initdatabase(pg_user,pg_passwd)
+		tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,Session,db_timezone)
+		infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail)
+		geo_functions.geotag(imagepath,trackpath)
+		imglist=image_functions.img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
+		print imglist
+		log_detail=log_functions.log2db(topic,logtext,imglist,infomarker_id,Session,db_log)
+		print 'image_functions'
+		image_functions.logid2images(log_detail,imglist,Session,db_imageinfo)
+		finishxml(xmlfile)		
 main(basepath)
 print 'DONE'

@@ -11,7 +11,7 @@ def now():
 
 
 def initdatabase(pg_user,pg_passwd):
-    engine = sa.create_engine('postgres://' + pg_user + ':' + pg_passwd + '@localhost/poab')
+    engine = sa.create_engine('postgres://' + pg_user + ':' + pg_passwd + '@localhost/poab_dev')
 
     meta = sa.MetaData()
 

@@ -30,7 +30,6 @@ def gentrkptlist(trackpath):
             i=0
 	    trkpt=list()
 	    for latitude in tree.xpath(query_trkptlat):
-		print latitude
                 trkptlat=float(tree.xpath(query_trkptlat)[i])
                 trkptlon=float(tree.xpath(query_trkptlon)[i])
                 trkpt.append((trkptlat,trkptlon))
@@ -221,7 +220,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 		    except AttributeError:
 			temperature=None
 			pressure=None
-		    print lat,lon
+		    print lat,lon,time
 		    trkpts.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
 		    latlonlist.append((float(lat),float(lon)))
     

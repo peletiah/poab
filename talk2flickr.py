@@ -66,6 +66,23 @@ def get_photosetinfo(photoset_id):
  	sys.stderr.write("%s\n" % (value, ))
 	sys.exit(1)                         
 
+def get_photosetphotos(photoset_id):
+    try:
+        photoset=flickr.photosets_getPhotos(photoset_id=photoset_id)
+        photolist=list()
+        for photo in photoset.find('photoset'):
+            class photodetails:
+                title=photo.attrib['title']
+                farm=photo.attrib['farm']
+                server=photo.attrib['server']
+                photoid=photo.attrib['id']
+                secret=photo.attrib['secret']
+                isprimary=photo.attrib['isprimary']
+            photolist.append(photodetails)
+        return photolist
+    except flickrapi.FlickrError, (value):
+        sys.stderr.write("%s\n" % (value, ))
+        sys.exit(1)
 
 def photoset_addphoto(photoset_id,photoid):
     try:

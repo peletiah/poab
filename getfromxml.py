@@ -32,19 +32,19 @@ def getcredentials(credentialfile):
 
 def parsexml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile, "r").read())
+    try:
+        done =  (tree.xpath('//done')[0]).text
+        if done == 'true':
+            return done
+    except IndexError:
+        pass
+    print tree.xpath('//topic')[0].text
     topic =  (tree.xpath('//topic')[0]).text.replace("&gt;",">").replace("&lt;","<")
     logtext =  (tree.xpath('//logtext')[0]).text.replace("&gt;",">").replace("&lt;","<")
     filepath =  (tree.xpath('//filepath')[0]).text
     photosetname =  (tree.xpath('//photoset')[0]).text
     photodescription =  (tree.xpath('//photodescription')[0]).text
     phototitle =  (tree.xpath('//phototitle')[0]).text
-    try:
-        done =  (tree.xpath('//done')[0]).text
-	if done == 'true':
-	    return done
-    except IndexError:
-	pass
-    
     xmlimglist=list()
     xmltaglist=list()
     query_xmlimglist='//img'

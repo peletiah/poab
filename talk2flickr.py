@@ -118,7 +118,7 @@ def getimginfo(photoid):
         for tag in photoinfo.find('photo/tags'):
 	   tags.append((tag.attrib['id'],tag.attrib['author'],tag.attrib['raw']))
         url=photoinfo.find('photo/urls/url').text 
-	return(farm,server,photoid,secret,originalformat,date_taken,tags,url,title,description)
+	return(farm,server,photoid,secret,originalsecret,originalformat,date_taken,tags,url,title,description)
     except flickrapi.FlickrError, (value):
 	sys.stderr.write("%s\n" % (value, ))
 	sys.exit(1)

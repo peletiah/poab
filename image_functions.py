@@ -176,7 +176,7 @@ def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,pho
 	    #----------- IMG2DATABASE --------	   
  
 	    #try adding photo to imageinfo
-            farm,server,flickrphotoid,secret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
+            farm,server,flickrphotoid,secret,originalsecret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
 	    imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash)
 	    photoid=imageinfo_detail.id
 	    farm=imageinfo_detail.flickrfarm

@@ -9,11 +9,9 @@ def parseimgstrings(logtext,imglist):
     i=1
     for img_detail in imglist:
         #flickrlink='<img src="http://benko.login.cx:8080/flickr/%s/%s/%s/%s/%s">' % (img_detail.flickrfarm,img_detail.flickrserver,img_detail.flickrphotoid,img_detail.flickrsecret,'_m')
-        print flickrlink
         print imglist
-        
         print '[img'+str(i)+']'
-        logtext=logtext.replace('[img'+str(i)+']','[imgid'+str(img_detail.id)']')
+        logtext=logtext.replace('[img'+str(i)+']','[imgid'+str(img_detail.id)+']')
         i=i+1
     return logtext
 

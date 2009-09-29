@@ -50,7 +50,7 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
             print 'Photoset duplicate found! - id:'+ str(photoset_detail.id) + ' - details:' + str(photoset_detail)
     else:
         #photoset does not yet exist, create at flickr and insert in the db
-	flickr_photosetid=talk2flickr.create_photoset(photosetname,'example content',flickrphotoid)
+	flickr_photosetid=talk2flickr.create_photoset(photosetname,'',flickrphotoid)
 	owner,primary,count,title,description=talk2flickr.get_photosetinfo(flickr_photosetid)
         session.add(db_photosets(flickr_photosetid,owner,primary,count,title,description))
         session.commit()
@@ -84,7 +84,10 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
             print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
     else:
         #Image are unique, insert them now
-        session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash))
+        if description == None:
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash))
+        else:
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
@@ -117,11 +120,17 @@ def tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image
 		session.add(db_image2tag(photoid,phototag_id))
 		session.commit()
 
+def sortedlistdir(d, cmpfunc=cmp):
+    l = os.listdir(d)
+    l.sort(cmpfunc)
+    return l
+
 def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')
     session=Session()
     imglist=list()
-    for image in os.listdir(imagepath):
+    print sortedlistdir(imagepath)
+    for image in sortedlistdir(imagepath):
 	print 'imagename=' + image
         if image.lower().endswith(filetypes):
 	    #------------ GEO ------------------
@@ -161,7 +170,10 @@ def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,pho
                 try:
 		    #image not on flickr and db, initiate upload
                     flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,photodescription,None)
-		    talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
+                    try:
+		                  talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
+                    except UnboundLocalError:
+                        print 'No geolocation in photo-exim-data :-('
                 except AttributeError:
                     print 'A AttributeError occured'
 	

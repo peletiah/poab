@@ -33,6 +33,7 @@ def gentrkptlist(trackpath):
                 trkptlat=float(tree.xpath(query_trkptlat)[i])
                 trkptlon=float(tree.xpath(query_trkptlon)[i])
                 trkpt.append((trkptlat,trkptlon))
+                print str(trkptlat)+' '+str(trkptlon)
                 i=i+1
     return trkpt
 
@@ -289,7 +290,7 @@ def geotag(imagepath,trackpath):#geotag the pictures in imagepath with data from
 	os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
     else:
 	print 'jhead didn\'t work'
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 > /var/log/poab/geotag.log 2>&1") == 0:
+    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
 	pass
     else:
 	print 'An error occured at geotag'

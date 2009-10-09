@@ -234,7 +234,7 @@ def initdatabase(pg_user,pg_passwd):
         def __init__(self,track_id,timezone_id,country_id,latitude,longitude,altitude,velocity,temperature,direction,pressure,timestamp,infomarker):
             self.track_id = track_id
             self.timezone_id = timezone_id
-	    self.country_id = country_id
+            self.country_id = country_id
             self.latitude = latitude
             self.longitude = longitude
             self.altitude = altitude
@@ -243,8 +243,8 @@ def initdatabase(pg_user,pg_passwd):
             self.direction = direction
             self.pressure = pressure
             self.timestamp = timestamp
-	         self.infomarker = infomarker
-	         self.location = location
+            self.infomarker = infomarker
+            self.location = location
 
         def __repr__(self):
             return "<trackpoint('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.track_id,self.timezone_id,self.country_id,self.latitude,self.longitude,self.altitude,self.velocity,self.temperature,self.direction,self.pressure,self.timestamp, self.infomarker, self.location)

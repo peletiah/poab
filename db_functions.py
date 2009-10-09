@@ -187,8 +187,9 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("trkptnum", types.Integer),
         sa.Column("distance", types.Numeric(11,4)),
         sa.Column("timespan", types.DateTime),
-	sa.Column("gencpoly_pts", types.UnicodeText),
-	sa.Column("gencpoly_levels", types.UnicodeText),
+	     sa.Column("gencpoly_pts", types.UnicodeText),
+	     sa.Column("gencpoly_levels", types.UnicodeText),
+        sa.Column("color", types.CHAR(6)),
         )
     class track(object):
         def __str(self):
@@ -201,9 +202,10 @@ def initdatabase(pg_user,pg_passwd):
             self.timespan = timespan
 	    self.gencpoly_pts = gencpoly_pts
 	    self.gencpoly_levels = gencpoly_levels
+	    self.color = color
 
         def __repr__(self):
-            return "<track('%s','%s','%s','%s','%s')>" % (self.date,self.distance,self.timespan,self.gencpoly_pts,self.gencpoly_levels)
+            return "<track('%s','%s','%s','%s','%s','%s')>" % (self.date,self.distance,self.timespan,self.gencpoly_pts,self.gencpoly_levels,self.color)
 
 
     ####### TRACKPOINT ########
@@ -222,6 +224,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("pressure", types.Integer),
         sa.Column("timestamp", types.TIMESTAMP(timezone=True)),
         sa.Column("infomarker", types.Boolean, default=False),
+        sa.Column("location", types.VARCHAR(256)),
         )
 
     class trackpoint(object):
@@ -240,10 +243,11 @@ def initdatabase(pg_user,pg_passwd):
             self.direction = direction
             self.pressure = pressure
             self.timestamp = timestamp
-	    self.infomarker = infomarker
+	         self.infomarker = infomarker
+	         self.location = location
 
         def __repr__(self):
-            return "<trackpoint('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.track_id,self.timezone_id,self.country_id,self.latitude,self.longitude,self.altitude,self.velocity,self.temperature,self.direction,self.pressure,self.timestamp, self.infomarker)
+            return "<trackpoint('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.track_id,self.timezone_id,self.country_id,self.latitude,self.longitude,self.altitude,self.velocity,self.temperature,self.direction,self.pressure,self.timestamp, self.infomarker, self.location)
 
 
     ####### TIMEZONE ########

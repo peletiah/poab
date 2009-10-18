@@ -4,3 +4,4 @@
 + more efficient queries for query_wte and get_country(Don't ask for every Trackpoint if nothing has changed between the first and the last)
 + image2tag makes duplicate entries when images are duplicated
 + adding the "finishtext"(<done>true</done>) destroys the proper xml-encoding and removes CDATA-strings
++ order photos by date before uploading

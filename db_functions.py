@@ -155,13 +155,14 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("flickrtitle", types.VARCHAR(256)),
         sa.Column("flickrdescription", types.UnicodeText),
         sa.Column("photohash", types.VARCHAR(256)),
+        sa.Column("photohash_990", types.VARCHAR(256)),
         )
 
     class imageinfo(object):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash):
+        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash,photohash_990):
             self.log_id = log_id
             self.photoset_id = photoset_id
             self.infomarker_id = infomarker_id
@@ -174,9 +175,10 @@ def initdatabase(pg_user,pg_passwd):
             self.flickrtitle = flickrtitle
             self.flickrdescription = flickrdescription
             self.photohash = photohash
+            self.photohash_990 = photohash_990
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash,self.photohash_990)
 
 
     ####### TRACK ########

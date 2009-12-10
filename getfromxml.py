@@ -60,8 +60,7 @@ def finishxml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile,"r").read())
     query='//log'
     element = tree.xpath(query)
-    finishtext='''<done>true</done>
-'''
+    finishtext='''<done>true</done>'''
     element[0].append(etree.fromstring(finishtext))
     f=file(basepath+xmlfile,"w")
     f.write(etree.tostring(tree))
@@ -69,7 +68,7 @@ def finishxml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile, 'r').read())     
 
 def main(basepath):
-    pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/scripts/credentials.ini')
+    pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/poab_upload/poab/credentials.ini')
     print basepath
     for xmlfile in os.listdir(basepath):
 	if xmlfile.lower().endswith('.xml'):

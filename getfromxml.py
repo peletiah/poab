@@ -85,7 +85,7 @@ def main(basepath):
 			# phototitle - title of the photos for flickr
 			# xmlimglist - list of the images in the xml
 			# xmltaglist - list of the images in the xml
-		imagepath=filepath+'images_sorted/'
+		imagepath=filepath+'images/best/'
 		try:
 		    trackpath=filepath+'trackfile/'
 		    for trackfile in os.listdir(trackpath):

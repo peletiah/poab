@@ -359,6 +359,20 @@ def initdatabase(pg_user,pg_passwd):
 
 
     Session=orm.sessionmaker(bind=engine)
-    return Session,log,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
+    class database:
+        Session=Session
+        log=log
+        comments=comments
+        continent=continent
+        country=country
+        photosets=photosets
+        imageinfo=imageinfo
+        track=track
+        trackpoint=trackpoint
+        timezone=timezone
+        image2tag=image2tag
+        phototag=phototag
+#    return Session,log,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
+    return database
 
 

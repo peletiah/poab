@@ -125,7 +125,7 @@ def sortedlistdir(d, cmpfunc=cmp):
     l.sort(cmpfunc)
     return l
 
-def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
+def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')
     session=Session()
     imglist=list()
@@ -169,7 +169,7 @@ def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,photodescription,pho
 	    else:
                 try:
 		    #image not on flickr and db, initiate upload
-                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,photodescription,None)
+                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,None)
                     try:
 		                  talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') #sets the geolocation of the newly uploaded picture on flickr
                     except UnboundLocalError:

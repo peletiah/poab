@@ -191,13 +191,13 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("timespan", types.DateTime),
 	     sa.Column("gencpoly_pts", types.UnicodeText),
 	     sa.Column("gencpoly_levels", types.UnicodeText),
-        sa.Column("color", types.CHAR(6)),
+        sa.Column("color", types.CHAR(6), default='FF0000'),
         )
     class track(object):
         def __str(self):
             return self.title
 
-        def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels):
+        def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels,color):
             self.date = date
 	    self.trkptnum = trkptnum
             self.distance = distance
@@ -233,7 +233,7 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,track_id,timezone_id,country_id,latitude,longitude,altitude,velocity,temperature,direction,pressure,timestamp,infomarker):
+        def __init__(self,track_id,timezone_id,country_id,latitude,longitude,altitude,velocity,temperature,direction,pressure,timestamp,infomarker,location):
             self.track_id = track_id
             self.timezone_id = timezone_id
             self.country_id = country_id
@@ -360,18 +360,18 @@ def initdatabase(pg_user,pg_passwd):
 
     Session=orm.sessionmaker(bind=engine)
     class database:
-        Session=Session
-        log=log
-        comments=comments
-        continent=continent
-        country=country
-        photosets=photosets
-        imageinfo=imageinfo
-        track=track
-        trackpoint=trackpoint
-        timezone=timezone
-        image2tag=image2tag
-        phototag=phototag
+        db_session=Session
+        db_log=log
+        db_comments=comments
+        db_continent=continent
+        db_country=country
+        db_photosets=photosets
+        db_imageinfo=imageinfo
+        db_track=track
+        db_trackpoint=trackpoint
+        db_timezone=timezone
+        db_image2tag=image2tag
+        db_phototag=phototag
 #    return Session,log,comments,continent,country,photosets,imageinfo,track,trackpoint,timezone,image2tag,phototag
     return database
 

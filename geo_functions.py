@@ -23,28 +23,28 @@ basepath='/srv/trackdata/bydate/'
 
 def gentrkptlist(trackpath):
     for gpxfile in os.listdir(trackpath):
-	if gpxfile.lower().endswith('.gpx'):
+        if gpxfile.lower().endswith('.gpx'):
             tree = etree.fromstring(file(trackpath+gpxfile, "r").read())
-	    query_trkptlon='//@lon'
-	    query_trkptlat='//@lat'
-            i=0
-	    trkpt=list()
-	    for latitude in tree.xpath(query_trkptlat):
-                trkptlat=float(tree.xpath(query_trkptlat)[i])
-                trkptlon=float(tree.xpath(query_trkptlon)[i])
-                trkpt.append((trkptlat,trkptlon))
-                print str(trkptlat)+' '+str(trkptlon)
-                i=i+1
+            query_trkptlon='//@lon'
+            query_trkptlat='//@lat'
+        i=0
+        trkpt=list()
+        for latitude in tree.xpath(query_trkptlat):
+            trkptlat=float(tree.xpath(query_trkptlat)[i])
+            trkptlon=float(tree.xpath(query_trkptlon)[i])
+            trkpt.append((trkptlat,trkptlon))
+            print str(trkptlat)+' '+str(trkptlon)
+            i=i+1
     return trkpt
 
 def query_wte(wteapi_key,lat,long):
     f = urllib.urlopen("http://worldtimeengine.com/api/"+wteapi_key+"/"+str(lat)+"/"+str(long))
     tzdetails=f.read()
     f.close()
-    print tzdetails
+    print 'tzdetails: '+tzdetails
     return tzdetails
 
-def get_timezone(trackpath,wteapi_key,Session,db_timezone):
+def get_timezone(trackpath,wteapi_key,database):
     print 'FUNCTION GET_TIMEZONE'
 ######################### replace this shit by worldtimeengine-query when finished #############
 #    tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
@@ -131,7 +131,8 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
 	i=False
 	#function to check the tracklist toroughly goes here
     
-    session=Session()
+    session=database.db_session()
+    db_timezone=database.db_timezone
     query_timezone=session.query(db_timezone).filter(and_(db_timezone.abbreviation==tz_abbreviation,db_timezone.utcoffset==tz_utcoffset))
     if query_timezone.count() == 1:
 	for detail in query_timezone.all():
@@ -153,8 +154,9 @@ def get_timezone(trackpath,wteapi_key,Session,db_timezone):
     return tz_detail
 
 
-def get_country(lat,lon,Session,db_country):
-    session=Session()
+def get_country(lat,lon,database):
+    session=database.db_session()
+    db_country=database.db_country
     accuracy=1 #level of region-detail in flickr, 1 is world
     flickr_countryname=talk2flickr.findplace(lat,lon,accuracy)
     query_country=session.query(db_country).filter(db_country.flickr_countryname==flickr_countryname)
@@ -169,9 +171,13 @@ def get_country(lat,lon,Session,db_country):
     return country_detail
 
 
-def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone,db_country,tz_detail):
+def gpx2database(trackpath,wteapi_key,database,tz_detail):
     print 'FUNCTION GPX2DATABASE'
-    session=Session()
+    session=database.db_session()
+    db_track=database.db_track
+    db_trackpoint=database.db_trackpoint
+    db_timezone=database.db_timezone
+    db_country=database.db_country
     i=1
     trk_ptnum=dict()
     trk_ptnum[0]=0
@@ -244,7 +250,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 	    track_detail=detail
 	    print 'more than one track found! - id:'+ str(track_detail.id) + ' - details:' + str(track_detail)
     else:
-        session.add(db_track(trkpt_1ts,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1]))
+        session.add(db_track(trkpt_1ts,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1],'FF0000'))
 	session.commit()
     	for detail in query_track.all():
 	    track_detail=detail
@@ -254,7 +260,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
     for trkpt in trkpts:
 	lat,lon,altitude,velocity,temperature,direction,pressure,time=trkpts[i]
 	if i==0 or i==track_detail.trkptnum: # we only check for the first and the last trackpoint what the country is, needs improvement(ref. TODO)
-	    country_detail=get_country(lat,lon,Session,db_country)
+	    country_detail=get_country(lat,lon,database)
 	query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.timezone_id==tz_detail.id,db_trackpoint.country_id==country_detail.iso_numcode,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.altitude==float(altitude),db_trackpoint.velocity==velocity,db_trackpoint.temperature==temperature,db_trackpoint.direction==direction,db_trackpoint.pressure==pressure,db_trackpoint.timestamp==time))
 	if query_trackpoint.count() == 1:
 	    for detail in query_trackpoint.all():
@@ -266,6 +272,7 @@ def gpx2database(trackpath,wteapi_key,Session,db_track,db_trackpoint,db_timezone
 		print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
 	else:
 	    #trackpoints are unique, insert them now
+        #ADD LOCATION-check!
 	    session.add(db_trackpoint(track_detail.id,tz_detail.id,country_detail.iso_numcode,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False)) 
             session.commit()
 	    for detail in query_trackpoint.all():

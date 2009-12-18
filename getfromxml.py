@@ -101,7 +101,7 @@ def main(basepath):
 			       # xmlimglist - list of the images in the xml
 			       # xmltaglist - list of the images in the xml
             imagepath_fullsize=filepath+'images/best/'
-            imagepath_smallsize=filepath+'images/990/'
+            imagepath_smallsize=filepath+'images/best_990/'
             try:
                 trackpath=filepath+'trackfile/'
                 for trackfile in os.listdir(trackpath):
@@ -121,8 +121,9 @@ def main(basepath):
             #USE "database"-CLASS in the following functions
             tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,database)
             infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,tz_detail)
-            geo_functions.geotag(imagepath,trackpath)
-    #		  imglist=image_functions.img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
+            #geo_functions.geotag(imagepath_fullsize,imagepath_smallsize,trackpath)
+            #imglist=image_functions.img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database)
+#Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
     #		  print imglist
     #		  log_detail=log_functions.log2db(topic,logtext,imglist,infomarker_id,Session,db_log)
     #		  print 'image_functions'

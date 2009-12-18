@@ -5,6 +5,21 @@ import os
 from sqlalchemy import and_
 from sqlalchemy import update
 import hashlib
+import glob
+
+
+def checkimghash(filepath,xmlimglist,num_of_img):
+    imagepath=filepath+'images/'
+    if glob.glob(imagepath+'best/*.jpg')==num_of_img:
+        for image in xmlimglist:
+            if hashlib.sha256(image_full).hexdigest()==image.hash_full:
+                return 'fullsize'
+    elif glob.glob(imagepath+'best_990/*.jpg')==num_of_img:
+         hash_ok=False
+        for image in xmlimglist:
+            if hashlib.sha256(image_full).hexdigest()==image.hash_:
+                return 'smallsize'
+
 
 def checkimgindb(Session,db_imageinfo,photohash):
     session=Session()
@@ -120,14 +135,19 @@ def tags2flickrndb(photoid,flickrphotoid,xmltaglist,Session,db_phototag,db_image
 		session.add(db_image2tag(photoid,phototag_id))
 		session.commit()
 
-def sortedlistdir(d, cmpfunc=cmp):
-    l = os.listdir(d)
+def sortedlistdir(imagepath, cmpfunc=cmp):
+    l = os.listdir(imagepath)
     l.sort(cmpfunc)
     return l
 
-def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets):
+def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')
-    session=Session()
+    session=database.Session()
+    db_trackpoint=database.db_trackpoint
+    db_imageinfo=database.db_imageinfo
+    db_image2tag=database.db_image2tag
+    db_phototag=database.db_phototag
+    db_photosets=database.db_photosets
     imglist=list()
     print sortedlistdir(imagepath)
     for image in sortedlistdir(imagepath):
@@ -135,8 +155,8 @@ def img2flickr(imagepath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi
         if image.lower().endswith(filetypes):
 	    #------------ GEO ------------------
 
-            #get the exif-geo-info with jhead
-            geoinfo=os.popen("/usr/bin/jhead -exifmap "+imagepath+image+"|/bin/grep Spec|/usr/bin/awk {'print $5 $7'}").readlines()
+            #get the exif-geo-info with exiftool
+            geoinfo=os.popen("/usr/bin/exiftool -specialinstructions "+imagepath+image+"|/usr/bin/awk {'print $5 $7'}").readlines()
 	    print geoinfo
 	    if geoinfo:
                 latitude,longitude=geoinfo[0].strip('\n').split(',',1)

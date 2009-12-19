@@ -287,31 +287,3 @@ def gpx2database(trackpath,wteapi_key,database,tz_detail):
         i=i+1
     return infomarker_id	
 	    
-
-def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):#geotag the pictures in imagepaths with data from gpxfile
-    print 'FUNCTION GEOTAG:'
-    #we have to check if the pictures are already geotagged
-    print imagepath_fullsize
-    #STOP
-    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|/usr/bin/awk {'print $5 $7'}").readlines():
-        print 'Pictures are already geotagged - deleting the geotags'
-        os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
-    else:
-        print 'no GPS-Tags found'
-    #geotag them now
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
-        pass
-    else:
-        print 'An error occured at geotag'
-
-    #and we do the same for the small images
-    print imagepath_smallsize
-    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|/usr/bin/awk {'print $5 $7'}").readlines():
-        print 'Pictures are already geotagged - deleting the geotags'
-        os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
-    else:
-        print 'no GPS-Tags found'
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
-        pass
-    else:
-        print 'An error occured at geotag'

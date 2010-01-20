@@ -18,18 +18,19 @@ flickr = flickrapi.FlickrAPI(api_key, api_secret, format='etree')
 def imgupload(filename,title,description,tags):
     try:
         # coding=utf-8
-	if tags:
-	    pass
-	else:
-	    tags=''
-        result=flickr.upload(filename=filename,title=title,description=description,tags=tags)
-        result_xml=etree.fromstring(result.xml)
-        query_photoid='//photoid'
-        photoid=etree.tostring(result_xml.xpath(query_photoid)[0]).split(">")[1].split("<")[0]
-        return photoid
+        if tags:
+            pass
+        else:
+            tags=''
+            result=flickr.upload(filename=filename,title=title,description=description,tags=tags)
+            #result_xml=etree.fromstring(result.xml)
+            #query_photoid='//photoid'
+            #photoid=etree.tostring(result_xml.xpath(query_photoid)[0]).split(">")[1].split("<")[0]
+            photoid=result.find('photoid').text
+            return photoid
     except flickrapi.FlickrError, (value):     
- 	sys.stderr.write("%s\n" % (value, ))
-	sys.exit(1)                         
+ 	     sys.stderr.write("%s\n" % (value, ))
+	     sys.exit(1)                         
 
 def imgreplace(filename,photo_id):
     try:

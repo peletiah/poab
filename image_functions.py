@@ -9,24 +9,41 @@ import glob
 
 
 def checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img):
+    print imagepath_fullsize, imagepath_smallsize, num_of_img
     if len(glob.glob(imagepath_fullsize+'*.jpg'))==num_of_img:
+        print 'Found '+str(num_of_img)+' pictures in the fullsize-path'
         hashok=True
         for image in xmlimglist:
-            if hashlib.sha256(imagepath_fullsize+image.name).hexdigest()!=image.hash_full:
+            if hashlib.sha256(open(imagepath_fullsize+image.name).read()).hexdigest()!=image.hash_full:
+                print imagepath_fullsize+image.name
+                print hashlib.sha256(imagepath_fullsize+image.name).hexdigest()
+                print image.hash_full
                 hashok=False
                 errorimage=image.name
                 errorpath=imagepath_fullsize
+                print 'Hash OK?: '+str(hashok)
         if hashok==True:
             return 0,imagepath_fullsize
+        else:
+            errormessage='ERROR: UPLOADED IMAGES ARE NOT COMPLETE/MISSING/MODIFIED!\n'+errorimage+'\n'+errorpath
+            return 2,errormessage
     elif len(glob.glob(imagepath_smallsize+'*.jpg'))==num_of_img:
+        print 'Found '+str(num_of_img)+' pictures in the smallsize-path'
         hashok=True
         for image in xmlimglist:
-            if hashlib.sha256(imagepath_smallsize+image.name).hexdigest()!=image.hash_resized:
+            if hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()!=image.hash_resized:
+                print imagepath_smallsize+image.name
+                print hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()
+                print image.hash_resized
                 hashok=False
                 errorimage=image.name
                 errorpath=imagepath_smallsize
+                print 'Hash OK?: '+str(hashok)
         if hashok==True:
             return 0,imagepath_smallsize
+        else:
+            errormessage='ERROR: UPLOADED IMAGES ARE NOT COMPLETE/MISSING/MODIFIED!\n'+errorimage+'\n'+errorpath
+            return 2,errormessage
     else:
         fullsize_number=len(glob.glob(imagepath_fullsize+'*.jpg'))
         resize_number=len(glob.glob(imagepath_fullsize+'*.jpg'))
@@ -39,33 +56,32 @@ def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):#geotag the picture
     print 'FUNCTION GEOTAG:'
     #we have to check if the pictures are already geotagged
     print imagepath_fullsize
-    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|/usr/bin/awk {'print $5 $7'}").readlines():
-        print 'Pictures are already geotagged - deleting the geotags'
-        os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
+    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|grep -v '==='|grep -v 'read'|awk '{printf \"%s\", $0} {print $5 $7}'").readlines():
+        print 'Pictures are already geotagged'
+        #os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
     else:
-        print 'no GPS-Tags found'
-    #geotag them now
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
-        pass
-    else:
-        print 'An error occured at geotag'
+        print 'no GPS-Tags found, geotagging now'
+        if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
+            pass
+        else:
+            print 'An error occured at geotag'
 
     #and we do the same for the small images
     print imagepath_smallsize
-    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|/usr/bin/awk {'print $5 $7'}").readlines():
-        print 'Pictures are already geotagged - deleting the geotags'
-        os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
+    if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_smallsize+"*|grep -v '==='|grep -v 'read'|awk '{printf \"%s\", $0} {print $5 $7}'").readlines():
+        print 'Pictures are already geotagged'
+        #os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
     else:
-        print 'no GPS-Tags found'
-    if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
-        pass
-    else:
-        print 'An error occured at geotag'
+        print 'no GPS-Tags found, geotagging now'
+        if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
+            pass
+        else:
+            print 'An error occured at geotag'
 
-def checkimgindb(database,photohash):
-    session=database.Session()
+def checkimgindb(database,filehash):
+    session=database.db_session()
     db_imageinfo=database.db_imageinfo
-    query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.photohash==photohash)
+    query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.photohash==filehash)
     if query_imageinfo.count() == 1:
         for detail in query_imageinfo.one():
             imageinfo_detail=detail
@@ -77,12 +93,23 @@ def checkimgindb(database,photohash):
             print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
         return 2,imageinfo_detail
     else:
-        return 0,None
-
+        query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.photohash_990==filehash)
+        if query_imageinfo.count() == 1:
+            for detail in query_imageinfo.one():
+                imageinfo_detail=detail
+                print 'Imageentry already exists - id:'+ str(imageinfo_detail.id) + ' details:' + str(imageinfo_detail)
+            return 1,imageinfo_detail
+        elif query_imageinfo.count() > 1:
+            for detail in query_imageinfo.one():
+                imageinfo_detail=detail
+                print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
+            return 2,imageinfo_detail
+        else:
+            return 0,None
 
 
 def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname,database):
-    session=database.Session()
+    session=database.db_session()
     db_imageinfo=database.db_imageinfo
     db_photosets=database.db_photosets
     query_photoset=session.query(db_photosets).filter(db_photosets.flickrtitle==photosetname)
@@ -119,8 +146,8 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
             print 'Photoset created! - id:'+ str(photoset_detail.id)
     return photoset_detail.id
     
-def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,infomarker_id,photoset_id,trackpoint_id,database,photohash):
-    session=database.Session()
+def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized):
+    session=database.db_session()
     db_imageinfo=database.db_imageinfo
     query_imageinfo=session.query(db_imageinfo).filter(and_(db_imageinfo.infomarker_id==infomarker_id,db_imageinfo.trackpoint_id==trackpoint_id,db_imageinfo.flickrfarm==farm,db_imageinfo.flickrserver==server,db_imageinfo.flickrphotoid==flickrphotoid,db_imageinfo.flickrsecret==secret,db_imageinfo.flickrdatetaken==date_taken))
     #check if we have this img in the db
@@ -150,9 +177,9 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
     else:
         #Image with this flickrdetails was not found in the db, we create it now
         if description == None:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash,photohash_resized))
         else:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash,photohash_resized))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
@@ -162,7 +189,7 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
 
 
 def tags2flickrndb(photoid,flickrphotoid,xmltaglist,database):
-    session=database.Session()
+    session=database.db_session()
     db_image2tag=database.db_image2tag
     db_phototag=database.db_phototag
     for tag in xmltaglist:
@@ -196,21 +223,20 @@ def sortedlistdir(imagepath, cmpfunc=cmp):
 
 def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')
-    session=database.Session()
+    session=database.db_session()
     db_trackpoint=database.db_trackpoint
     db_imageinfo=database.db_imageinfo
     db_image2tag=database.db_image2tag
     db_phototag=database.db_phototag
     db_photosets=database.db_photosets
     xmlimglist_plus_db_details=list()
-    print sortedlistdir(upload2flickrpath)
     for image in sortedlistdir(upload2flickrpath):
         print 'imagename=' + image
         if image.lower().endswith(filetypes):
         #------------ GEO ------------------
             #get the exif-geo-info with exiftool
             #and link image with trackpoint_id
-            geoinfo=os.popen("/usr/bin/exiftool -specialinstructions "+imagepath+image+"|/usr/bin/awk {'print $5 $7'}").readlines()
+            geoinfo=os.popen("/usr/bin/exiftool -specialinstructions "+upload2flickrpath+image+"|/usr/bin/awk {'print $5 $7'}").readlines()
             print geoinfo
             if geoinfo:
                 latitude,longitude=geoinfo[0].strip('\n').split(',',1)
@@ -225,34 +251,42 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
 
 	        #------------ HASHING --------------
 
-            imagefile=open(imagepath+image).read()
-            photohash=hashlib.sha256(image).hexdigest()
+##we need to make sure that for images that have not been geotagged after checkimghash the hash that has been modified by GEO is used to verify. Not sure what this part of img2flickr is good for anyway...
+            imagefile=open(upload2flickrpath+image).read()
+            photohash=None
+            photohash_resized=None
+            filehash=hashlib.sha256(open(upload2flickrpath+image).read()).hexdigest()
+            print image, filehash
             hashok=True
             for imgfromxml in xmlimglist:
-                if photohash==imgfromxml.photohash_fullsize and image==imgfromxml.name:
-                    print 'Matching fullsize image found in xmlimglist!'
-                    #save the description from the xml-file, we need it for flickr and the db-entry later
-                    imgdescription=imgfromxml.description
-                elif photohash==imgfromxml.photohash_smallsize and image==imgfromxml.name:
-                    print 'Matching resized image found in xmlimglist!'
-                    imgdescription=imgfromxml.description
+                if imgfromxml.name == image:
+                    if filehash == imgfromxml.hash_full:
+                        print 'Matching fullsize image found in xmlimglist!'
+                        #save the description from the xml-file, we need it for flickr and the db-entry later
+                        imgdescription=imgfromxml.description
+                        print 'imgdescription='+str(imgdescription)
+                        photohash=filehash
+                    elif filehash==imgfromxml.hash_resized:
+                        print 'Matching resized image found in xmlimglist!'
+                        imgdescription=imgfromxml.description
+                        print 'imgdescription='+str(imgdescription)
+                        photohash_resize=filehash
+                    else:
+                        hashok=False
+                        errorimage=image
+                        errorimagepath=upload2flickrpath
+                        print 'ERROR: UPLOADED IMAGES ARE NOT COMPLETE!\n'+errorimage+'\n'+errorimagepath+'\nfilehash:'+filehash +'\nfullhash: '+imgfromxml.hash_full+'\nhash_resized: '+imgfromxml.hash_resized
+                        return 0
                 else:
-                    hashok=False
-                    errorimage=image
-                    errorimagepath=upload2flickrpath
-                    print 'ERROR: UPLOADED IMAGES ARE NOT COMPLETE!\n'+errorimage+'\n'+errorpath
-                    break
-            print 'photohash: ' + photohash
+                    print image, imgfromxml.name
+            print 'filehash: ' + filehash
             print 'photo linked to trackpoint_id: ' + str(trackpoint_id)
             #check if the photo already exists
-            result,imageinfo_detail=checkimgindb(database,photohash)
+            result,imageinfo_detail=checkimgindb(database,filehash)
 
             #----------------------------------
     
             #------------ FLICKR --------------
-            #STOP we have to make sure that the photohash fits the original
-            #photos BEFORE we start geotagging(=changes hash), after geotagging
-            #the hash needs to be calculated new
 
             if result > 0:
                 #we already have the picture in the database, we extract the info we've found to variables we'll use elsewhere
@@ -261,16 +295,17 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                 flickrphotoid=imageinfo_detail.flickrphotoid
                 secret=imageinfo_detail.flickrsecret
             else:
-                try:
+                #try:
                     #image not in db and we assume also not on flickr, initiate upload
-                    flickrphotoid=talk2flickr.imgupload(imagepath+image,phototitle,imgdescription)
-                    try:
-                        #sets the geolocation of the newly uploaded picture on flickr
-                        talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') 
-                    except UnboundLocalError:
-                        print 'No geolocation in photo-exim-data :-('
-                except AttributeError:
-                    print 'A AttributeError occured'
+                flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,imgdescription,'')
+                print flickrphotoid
+                try:
+                    #sets the geolocation of the newly uploaded picture on flickr
+                    talk2flickr.setlocation(flickrphotoid,latitude,longitude,'16') 
+                except UnboundLocalError:
+                    print 'No geolocation in photo-exim-data :-('
+                #except AttributeError:
+                    #print 'A AttributeError occured'
 	
                 #---------------------------------
                 
@@ -284,7 +319,7 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                 
                 #try adding photo to imageinfo
                 farm,server,flickrphotoid,secret,originalsecret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
-                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,Session,db_imageinfo,photohash)
+                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized)
                 photoid=imageinfo_detail.id
                 farm=imageinfo_detail.flickrfarm
                 server=imageinfo_detail.flickrserver
@@ -304,17 +339,18 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                 #imgfromxml-class to xmlimglist_plus_db_details
                 for imgfromxml in xmlimglist:
                     if imgfromxml.name==image:
+                        imgfromxml.name
+                        imageinfo_detail.flickrphotoid 
                         imgfromxml.imageinfo_detail=imageinfo_detail
                         xmlimglist_plus_db_details.append(imgfromxml)
-                return xmlimglist_plus_db_details
+    return xmlimglist_plus_db_details
 
 
 def logid2images(log_detail,xmlimglist_plus_db_details,database):
-    session=database.Session()
+    session=database.db_session()
     db_imageinfo=database.db_imageinfo
     db_image2tag=database.db_image2tag
     db_phototag=database.db_phototag
-    print imglist
     for imgfromxml in xmlimglist_plus_db_details:
         query_imageinfo=session.query(db_imageinfo).filter(db_imageinfo.id==imgfromxml.imageinfo_detail.id)
         query_imagelogid=session.query(db_imageinfo).filter(and_(db_imageinfo.id==imgfromxml.imageinfo_detail.id,db_imageinfo.log_id==log_detail.id))

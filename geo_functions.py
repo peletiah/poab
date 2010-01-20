@@ -47,76 +47,76 @@ def query_wte(wteapi_key,lat,long):
 def get_timezone(trackpath,wteapi_key,database):
     print 'FUNCTION GET_TIMEZONE'
 ######################### replace this shit by worldtimeengine-query when finished #############
-#    tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
-#<timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
-#    <version>1.1</version>
-#    <location>
-#        <region>Austria</region>
-#        <latitude>47.160992</latitude>
-#        <longitude>11.5210216</longitude>
-#    </location>
-#    <time>
-#        <utc>2008-12-30 15:45:32</utc>
-#        <local>2008-12-30 16:45:32</local>
-#        <zone>
-#            <hasDST>true</hasDST>
-#            <current>
-#                <abbreviation>CET</abbreviation>
-#                <description>Central European Time</description>
-#                <utcoffset>+1:00</utcoffset>
-#                <isdst>false</isdst>
-#                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
-#            </current>
-#            <next>
-#                <abbreviation>CEST</abbreviation>
-#                <description>Central European Summer Time</description>
-#                <utcoffset>+2:00</utcoffset>
-#                <isdst>true</isdst>
-#                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
-#            </next>
-#        </zone>
-#    </time>
-#</timezone>''')
-##
-#    tzdetailslast=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
-#<timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
-#    <version>1.1</version>
-#    <location>
-#        <region>Austria</region>
-#        <latitude>47.160992</latitude>
-#        <longitude>11.5210216</longitude>
-#    </location>
-#    <time>
-#        <utc>2008-12-30 15:45:32</utc>
-#        <local>2008-12-30 16:45:32</local>
-#        <zone>
-#            <hasDST>true</hasDST>
-#            <current>
-#                <abbreviation>CET</abbreviation>
-#                <description>Central European Time</description>
-#                <utcoffset>+1:00</utcoffset>
-#                <isdst>false</isdst>
-#                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
-#            </current>
-#            <next>
-#                <abbreviation>CEST</abbreviation>
-#                <description>Central European Summer Time</description>
-#                <utcoffset>+2:00</utcoffset>
-#                <isdst>true</isdst>
-#                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
-#            </next>
-#        </zone>
-#    </time>
-#</timezone>''')
+    tzdetailsfirst=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
+<timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
+    <version>1.1</version>
+    <location>
+        <region>Austria</region>
+        <latitude>47.160992</latitude>
+        <longitude>11.5210216</longitude>
+    </location>
+    <time>
+        <utc>2008-12-30 15:45:32</utc>
+        <local>2008-12-30 16:45:32</local>
+        <zone>
+            <hasDST>true</hasDST>
+            <current>
+                <abbreviation>CET</abbreviation>
+                <description>Central European Time</description>
+                <utcoffset>+1:00</utcoffset>
+                <isdst>false</isdst>
+                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
+            </current>
+            <next>
+                <abbreviation>CEST</abbreviation>
+                <description>Central European Summer Time</description>
+                <utcoffset>+2:00</utcoffset>
+                <isdst>true</isdst>
+                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
+            </next>
+        </zone>
+    </time>
+</timezone>''')
+#
+    tzdetailslast=etree.fromstring('''<?xml version="1.0" encoding="UTF-8" ?>
+<timezone xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://worldtimeengine.com/timezone.xsd">
+    <version>1.1</version>
+    <location>
+        <region>Austria</region>
+        <latitude>47.160992</latitude>
+        <longitude>11.5210216</longitude>
+    </location>
+    <time>
+        <utc>2008-12-30 15:45:32</utc>
+        <local>2008-12-30 16:45:32</local>
+        <zone>
+            <hasDST>true</hasDST>
+            <current>
+                <abbreviation>CET</abbreviation>
+                <description>Central European Time</description>
+                <utcoffset>+1:00</utcoffset>
+                <isdst>false</isdst>
+                <effectiveUntil>2009-03-29 01:00:00</effectiveUntil>
+            </current>
+            <next>
+                <abbreviation>CEST</abbreviation>
+                <description>Central European Summer Time</description>
+                <utcoffset>+2:00</utcoffset>
+                <isdst>true</isdst>
+                <effectiveUntil>2009-10-25 01:00:00</effectiveUntil>
+            </next>
+        </zone>
+    </time>
+</timezone>''')
 #    ################################################################################
 
     #we find out the timezone by getting the timezone for the first and the last coordinate of our trackfiles
     trkptlist=gentrkptlist(trackpath)
     lat,long=trkptlist[0] #first point in the track
-    tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
+    #tzdetailsfirst=etree.fromstring(query_wte(wteapi_key,lat,long))
     print tzdetailsfirst
     lat,long=trkptlist[-1] #last point in the track
-    tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
+    #tzdetailslast=etree.fromstring(query_wte(wteapi_key,lat,long))
     print tzdetailslast
     
     if (tzdetailsfirst.xpath('//utcoffset')[0]).text == (tzdetailslast.xpath('//utcoffset')[0]).text:

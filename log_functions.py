@@ -5,12 +5,15 @@ import db_functions
 
 
 
-def parseimgstrings(logtext,xmlimglist_plus_db_details):
+def parseimgstrings(logtext,xmlimglist_plus_db_details,num_of_img):
     for imgfromxml in xmlimglist_plus_db_details:
         #flickrlink='<img src="http://benko.login.cx:8080/flickr/%s/%s/%s/%s/%s">' % (img_detail.flickrfarm,img_detail.flickrserver,img_detail.flickrphotoid,img_detail.flickrsecret,'_m')
         if imgfromxml.logphoto=='True':
+            print imgfromxml.number
+            print imgfromxml.name
             i=1
             while i <= num_of_img:
+                print 'currentimgnumber: img'+str(i)
                 if imgfromxml.number=='img'+str(i):
                     print '[img'+str(i)+']'
                     logtext=logtext.replace('[img'+str(i)+']','[imgid'+str(imgfromxml.imageinfo_detail.id)+']')
@@ -20,9 +23,10 @@ def parseimgstrings(logtext,xmlimglist_plus_db_details):
 
 
 def log2db(topic,logtext,xmlimglist_plus_db_details,num_of_img,infomarker_id,database):
-    session=database.Session()
+    session=database.db_session()
     db_log=database.db_log
     parsed_logtext=parseimgstrings(logtext,xmlimglist_plus_db_details,num_of_img)
+    print parsed_logtext
     query_log=session.query(db_log).filter(and_(db_log.topic==topic,db_log.content==parsed_logtext,db_log.infomarker_id==infomarker_id))
     if query_log.count() == 1:
         for detail in query_log.all():

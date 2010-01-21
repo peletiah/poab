@@ -1,5 +1,3 @@
-+ add more flickr-relevant input-fields to the creator-interface(image-title or country, image-description, tags,...)
-+ Thumbnails for images
 + photohashing for replacing photos(needs implementation on client-side)
 + ignore geotagging of photos with no matching trackpoint
 + more efficient queries for query_wte and get_country(Don't ask for every Trackpoint if nothing has changed between the first and the last)
@@ -7,3 +5,4 @@
 + adding the "finishtext"(<done>true</done>) destroys the proper xml-encoding and removes CDATA-strings
 + order photos by date before uploading
 + replace 5000 variables with **kwargs when calling a function
++ log_functions needs createdate from contentfile.xml instead of default date from postgres

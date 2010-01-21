@@ -213,8 +213,8 @@ def gpx2database(trackpath,wteapi_key,database,tz_detail):
                     altitude=trackPoint.find('{%s}ele'% gpx_ns).text
                     time=trackPoint.find('{%s}time'% gpx_ns).text.replace('T',' ')[:-1] #replace the "T" with " " and remove the "Z" from the end of the string
                     desc=trackPoint.find('{%s}desc'% gpx_ns).text.split(', ') #split the description to get "speed" and "direction"-values
-                    velocity=None
-                    direction=None
+                    velocity=0
+                    direction=0
                     for value in desc:
 			               if value.split('=')[0] == 'Speed':
 			                   velocity=value.split('=')[1][:-4]

@@ -20,22 +20,36 @@ import talk2flickr
 
 basepath='/srv/trackdata/bydate/'
 
-
 def gentrkptlist(trackpath):
     for gpxfile in os.listdir(trackpath):
         if gpxfile.lower().endswith('.gpx'):
             tree = etree.fromstring(file(trackpath+gpxfile, "r").read())
             query_trkptlon='//@lon'
             query_trkptlat='//@lat'
-        i=0
-        trkptlist=list()
-        for latitude in tree.xpath(query_trkptlat):
-            trkptlat=float(tree.xpath(query_trkptlat)[i])
-            trkptlon=float(tree.xpath(query_trkptlon)[i])
-            trkptlist.append((trkptlat,trkptlon))
-            print str(trkptlat)+' '+str(trkptlon)
-            i=i+1
+            i=0
+            trkptlist=list()
+            latlist=tree.xpath(query_trkptlat)
+            lonlist=tree.xpath(query_trkptlon)
+            for latitude in latlist:
+                trkptlist.append((float(latlist[i]),float(lonlist[i])))
+                i=i+1
     return trkptlist
+
+#def gentrkptlist(trackpath):
+#    for gpxfile in os.listdir(trackpath):
+#        if gpxfile.lower().endswith('.gpx'):
+#            tree = etree.fromstring(file(trackpath+gpxfile, "r").read())
+#            query_trkptlon='//@lon'
+#            query_trkptlat='//@lat'
+#        i=0
+#        trkptlist=list()
+#        for latitude in tree.xpath(query_trkptlat):
+#            trkptlat=float(tree.xpath(query_trkptlat)[i])
+#            trkptlon=float(tree.xpath(query_trkptlon)[i])
+#            trkptlist.append((trkptlat,trkptlon))
+#            print str(trkptlat)+' '+str(trkptlon)
+#            i=i+1
+#    return trkptlist
 
 def query_wte(wteapi_key,lat,long):
     f = urllib.urlopen("http://worldtimeengine.com/api/"+wteapi_key+"/"+str(lat)+"/"+str(long))
@@ -271,7 +285,8 @@ def gpx2database(trackpath,wteapi_key,database,tz_detail):
                 print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
         else:
             #trackpoints are unique, insert them now
-            session.add(db_trackpoint(track_detail.id,tz_detail.id,country_detail.iso_numcode,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False,None))
+            location=talk2flickr.findplace(lat,lon,8)
+            session.add(db_trackpoint(track_detail.id,tz_detail.id,country_detail.iso_numcode,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False,Location))
             session.commit()
             for detail in query_trackpoint.all():
                 trkpt_detail=detail
@@ -281,7 +296,6 @@ def gpx2database(trackpath,wteapi_key,database,tz_detail):
         if i==track_detail.trkptnum/2:
             for column in query_trackpoint.all():
                 column.infomarker=True
-                column.location=talk2flickr.findplace(lat,lon,8)
                 session.commit()
                 infomarker_id=trkpt_detail.id
         i=i+1

@@ -9,19 +9,21 @@ import glob
 
 
 def checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img):
+    filetypes=('png','jpg','jpeg','gif','tif')
     print imagepath_fullsize, imagepath_smallsize, num_of_img
     if len(glob.glob(imagepath_fullsize+'*.jpg'))==num_of_img:
         print 'Found '+str(num_of_img)+' pictures in the fullsize-path'
         hashok=True
         for image in xmlimglist:
-            if hashlib.sha256(open(imagepath_fullsize+image.name).read()).hexdigest()!=image.hash_full:
-                print imagepath_fullsize+image.name
-                print hashlib.sha256(imagepath_fullsize+image.name).hexdigest()
-                print image.hash_full
-                hashok=False
-                errorimage=image.name
-                errorpath=imagepath_fullsize
-                print 'Hash OK?: '+str(hashok)
+            if image.name.split('.')[1] in filetypes:
+                if hashlib.sha256(open(imagepath_fullsize+image.name).read()).hexdigest()!=image.hash_full:
+                    print imagepath_fullsize+image.name
+                    print hashlib.sha256(imagepath_fullsize+image.name).hexdigest()
+                    print image.hash_full
+                    hashok=False
+                    errorimage=image.name
+                    errorpath=imagepath_fullsize
+                    print 'Hash OK?: '+str(hashok)
         if hashok==True:
             return 0,imagepath_fullsize
         else:
@@ -31,14 +33,15 @@ def checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img):
         print 'Found '+str(num_of_img)+' pictures in the smallsize-path'
         hashok=True
         for image in xmlimglist:
-            if hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()!=image.hash_resized:
-                print imagepath_smallsize+image.name
-                print hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()
-                print image.hash_resized
-                hashok=False
-                errorimage=image.name
-                errorpath=imagepath_smallsize
-                print 'Hash OK?: '+str(hashok)
+            if image.name.split('.')[1] in filetypes:
+                if hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()!=image.hash_resized:
+                    print imagepath_smallsize+image.name
+                    print hashlib.sha256(open(imagepath_smallsize+image.name).read()).hexdigest()
+                    print image.hash_resized
+                    hashok=False
+                    errorimage=image.name
+                    errorpath=imagepath_smallsize
+                    print 'Hash OK?: '+str(hashok)
         if hashok==True:
             return 0,imagepath_smallsize
         else:
@@ -146,7 +149,7 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
             print 'Photoset created! - id:'+ str(photoset_detail.id)
     return photoset_detail.id
     
-def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized):
+def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname):
     session=database.db_session()
     db_imageinfo=database.db_imageinfo
     query_imageinfo=session.query(db_imageinfo).filter(and_(db_imageinfo.infomarker_id==infomarker_id,db_imageinfo.trackpoint_id==trackpoint_id,db_imageinfo.flickrfarm==farm,db_imageinfo.flickrserver==server,db_imageinfo.flickrphotoid==flickrphotoid,db_imageinfo.flickrsecret==secret,db_imageinfo.flickrdatetaken==date_taken))
@@ -177,9 +180,9 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
     else:
         #Image with this flickrdetails was not found in the db, we create it now
         if description == None:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash,photohash_resized))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash,photohash_resized,imgname))
         else:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash,photohash_resized))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash,photohash_resized,imgname))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
@@ -260,6 +263,7 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
             hashok=True
             for imgfromxml in xmlimglist:
                 if imgfromxml.name == image:
+                    imgname=image
                     if filehash == imgfromxml.hash_full:
                         print 'Matching fullsize image found in xmlimglist!'
                         #save the description from the xml-file, we need it for flickr and the db-entry later
@@ -319,7 +323,7 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                 
                 #try adding photo to imageinfo
                 farm,server,flickrphotoid,secret,originalsecret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
-                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized)
+                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname)
                 photoid=imageinfo_detail.id
                 farm=imageinfo_detail.flickrfarm
                 server=imageinfo_detail.flickrserver

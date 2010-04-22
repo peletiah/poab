@@ -5,4 +5,7 @@
 + adding the "finishtext"(<done>true</done>) destroys the proper xml-encoding and removes CDATA-strings
 + order photos by date before uploading
 + replace 5000 variables with **kwargs when calling a function
-+ log_functions needs createdate from contentfile.xml instead of default date from postgres
++ log_functions needs createdate from contentfile.xml instead of default date from postgres!(had problem again on 21.4.)
++ talk2flickr.findplace has been added for all trackpoints(used to be infomarker only before) - try if it really works the next time you add a track
++ talk2flickr.findplace may have problems when the flickr-API doesn't respond(seems to such a bit)
++ add exim-metadata to imageinfo(aperture, shutter, focal length, ISO)

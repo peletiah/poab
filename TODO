@@ -8,5 +8,7 @@
 + log_functions needs createdate from contentfile.xml instead of default date from postgres!(had problem again on 21.4.)
 + talk2flickr.findplace has been added for all trackpoints(used to be infomarker only before) - try if it really works the next time you add a track
 + talk2flickr.findplace may have problems when the flickr-API doesn't respond(seems to such a bit)
-+ add exim-metadata to imageinfo(aperture, shutter, focal length, ISO)
 + enable caching for production use(It's a function of Mako)
++ fix UTF-8 issues on poab_local with tinymce/punymce
++ autosave for poab_local(No lost log-entries anymore)
++ logid2images sets current log_id for all related images, but this might cause problems for the imagepath, check it...

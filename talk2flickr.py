@@ -21,6 +21,8 @@ def imgupload(filename,title,description,tags):
         if tags:
             pass
         else:
+            if description==None:
+                description=''
             tags=''
             result=flickr.upload(filename=filename,title=title,description=description,tags=tags)
             #result_xml=etree.fromstring(result.xml)
@@ -125,6 +127,26 @@ def getimginfo(photoid):
 	sys.exit(1)
 	
 
+def getexif(photoid,secret):
+    try:
+        photoexif=flickr.photos_getExif(photo_id=photoid,secret=secret)
+        exifdata=dict()
+        for exif in photoexif.find('photo'):
+            try:
+                exifdata[exif.attrib['label']+'_raw']=exif.find('raw').text
+            except:
+                continue
+            try:
+                exifdata[exif.attrib['label']+'_clean']=exif.find('clean').text
+            except:
+                continue
+        return exifdata
+    except flickrapi.FlickrError, (value):
+        sys.stderr.write("%s\n" % (value, ))
+        sys.exit(1)
+        
+
+
 def setlocation(photoid,lat,lon,accuracy):
     try:
         success=flickr.photos_geo_setLocation(photo_id=photoid,lat=lat,lon=lon,accuracy=accuracy)
@@ -144,12 +166,12 @@ def removelocation(photoid):
 
 def findplace(lat,lon,accuracy):
     try:
-	place=flickr.places_findByLatLon(lat=lat,lon=lon,accuracy=accuracy)
-	try:
-	    place_url=place.find('places/place').attrib['name'].replace('+',' ').replace('/','')
-	    return place_url
-	except AttributeError:
-	    return None
+        place=flickr.places_findByLatLon(lat=lat,lon=lon,accuracy=accuracy)
+        try:
+            name=place.find('places/place').attrib['name']
+            return name
+        except AttributeError:
+            return None
     except flickrapi.FlickrError, (value):
         sys.stderr.write("%s\n" % (value, ))
         sys.exit(1)

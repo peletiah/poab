@@ -51,9 +51,10 @@ def parsexml(basepath,xmlfile):
         photosetname =  log.find('photoset').text
         phototitle =  log.find('phototitle').text
         createdate =  log.find('createdate').text
+        trk_color =  log.find('trk_color').text
         num_of_img =  int(log.find('num_of_img').text)
         print 'NUMBER OF IMAGES: '+str(num_of_img)
-        createdate = time.strptime(createdate,'%Y-%m-%d %H:%M:%S')
+        createdate = datetime.datetime.strptime(createdate,'%Y-%m-%d %H:%M:%S')
         images = root.getiterator("img")
         xmlimglist=list()
         for image in images:
@@ -75,7 +76,7 @@ def parsexml(basepath,xmlfile):
             xmltaglist.append(element.text)
         
 
-    return topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,xmlimglist,xmltaglist		
+    return topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist		
 
 def finishxml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile,"r").read())
@@ -97,7 +98,7 @@ def main(basepath):
             if parsexml(basepath,xmlfile) == 'true':
                 print xmlfile+' has already been parsed'
             else:
-                topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,xmlimglist,xmltaglist=parsexml(basepath,xmlfile)
+                topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist=parsexml(basepath,xmlfile)
 			       # topic - topic of the log-entry
 			       # logtext - content-text of the log-entry
 			       # filepath - where are the files belonging to this xml-file situated 
@@ -123,17 +124,15 @@ def main(basepath):
     		      print 'No Trackfile found!'
             database=db_functions.initdatabase(pg_user,pg_passwd)
     
-            #USE "database"-CLASS in the following functions
-            tz_detail=geo_functions.get_timezone(trackpath,wteapi_key,database)
-            infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,tz_detail)
+            infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color)
             image_functions.checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img)
             hashcheck,upload2flickrpath=image_functions.checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img)
             if hashcheck > 0:
                 return upload2flickrpath
             image_functions.geotag(imagepath_fullsize,imagepath_smallsize,trackpath)
             xmlimglist_plus_db_details=image_functions.img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database)
-#Session,db_trackpoint,db_imageinfo,db_image2tag,db_phototag,db_photosets)
-            log_detail=log_functions.log2db(topic,logtext,xmlimglist_plus_db_details,num_of_img,infomarker_id,database)
+            geo_functions.add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,database)
+            log_detail=log_functions.log2db(topic,logtext,createdate,xmlimglist_plus_db_details,num_of_img,infomarker_id,database)
             image_functions.logid2images(log_detail,xmlimglist_plus_db_details,database)
             finishxml(xmlfile)
             return 'Everything went fine i think'

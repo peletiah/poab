@@ -55,7 +55,8 @@ def checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img):
         errormessage='ERROR: UPLOADED IMAGES ARE NOT COMPLETE/MISSING!\n'+errorimage+'\n'+errorpath
         return 2,errormessage
 
-def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):#geotag the pictures in imagepaths with data from gpxfile
+def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):
+    #geotag the pictures in imagepaths with data from gpxfile
     print 'FUNCTION GEOTAG:'
     #we have to check if the pictures are already geotagged
     print imagepath_fullsize
@@ -108,6 +109,7 @@ def checkimgindb(database,filehash):
                 print 'Imageentry duplicate found! - id:'+ str(imageinfo_detail.id) + ' - details:' + str(imageinfo_detail)
             return 2,imageinfo_detail
         else:
+            print "FUNCTION checkimgindb: image not found in db"
             return 0,None
 
 
@@ -149,7 +151,7 @@ def photoset2flickrndb(flickrapi_key,flickrapi_secret,flickrphotoid,photosetname
             print 'Photoset created! - id:'+ str(photoset_detail.id)
     return photoset_detail.id
     
-def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname):
+def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname,aperture,shutter,focal_length,iso):
     session=database.db_session()
     db_imageinfo=database.db_imageinfo
     query_imageinfo=session.query(db_imageinfo).filter(and_(db_imageinfo.infomarker_id==infomarker_id,db_imageinfo.trackpoint_id==trackpoint_id,db_imageinfo.flickrfarm==farm,db_imageinfo.flickrserver==server,db_imageinfo.flickrphotoid==flickrphotoid,db_imageinfo.flickrsecret==secret,db_imageinfo.flickrdatetaken==date_taken))
@@ -180,9 +182,9 @@ def img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,titl
     else:
         #Image with this flickrdetails was not found in the db, we create it now
         if description == None:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash,photohash_resized,imgname))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,None,photohash,photohash_resized,imgname,aperture,shutter,focal_length,iso))
         else:
-            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash,photohash_resized,imgname))
+            session.add(db_imageinfo(None,photoset_id,infomarker_id,trackpoint_id,farm,server,flickrphotoid,secret,date_taken,title,description,photohash,photohash_resized,imgname,aperture,shutter,focal_length,iso))
         session.commit()
         for detail in query_imageinfo.all():
             imageinfo_detail=detail
@@ -236,7 +238,7 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
     for image in sortedlistdir(upload2flickrpath):
         print 'imagename=' + image
         if image.lower().endswith(filetypes):
-        #------------ GEO ------------------
+            #------------ GEO ------------------
             #get the exif-geo-info with exiftool
             #and link image with trackpoint_id
             geoinfo=os.popen("/usr/bin/exiftool -specialinstructions "+upload2flickrpath+image+"|/usr/bin/awk {'print $5 $7'}").readlines()
@@ -258,6 +260,7 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
             imagefile=open(upload2flickrpath+image).read()
             photohash=None
             photohash_resized=None
+            imgdescription=''
             filehash=hashlib.sha256(open(upload2flickrpath+image).read()).hexdigest()
             print image, filehash
             hashok=True
@@ -285,22 +288,17 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                     print image, imgfromxml.name
             print 'filehash: ' + filehash
             print 'photo linked to trackpoint_id: ' + str(trackpoint_id)
-            #check if the photo already exists
+            #check if a photo with this hash already exists
             result,imageinfo_detail=checkimgindb(database,filehash)
 
             #----------------------------------
     
             #------------ FLICKR --------------
 
-            if result > 0:
-                #we already have the picture in the database, we extract the info we've found to variables we'll use elsewhere
-                farm=imageinfo_detail.flickrfarm
-                server=imageinfo_detail.flickrserver
-                flickrphotoid=imageinfo_detail.flickrphotoid
-                secret=imageinfo_detail.flickrsecret
-            else:
+            if result == 0:
                 #try:
-                    #image not in db and we assume also not on flickr, initiate upload
+                    #image with this hash is not in db and 
+                    #we assume also not on flickr, initiate upload
                 flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,imgdescription,'')
                 print flickrphotoid
                 try:
@@ -321,32 +319,33 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                 
                 #----------- IMG2DATABASE --------	   
                 
-                #try adding photo to imageinfo
+                #fetch image-related data from flickr, then try adding photo to imageinfo
                 farm,server,flickrphotoid,secret,originalsecret,originalformat,date_taken,flickr_tags,url,title,description = talk2flickr.getimginfo(flickrphotoid)
-                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname)
-                photoid=imageinfo_detail.id
-                farm=imageinfo_detail.flickrfarm
-                server=imageinfo_detail.flickrserver
-                flickrphotoid=imageinfo_detail.flickrphotoid
-                secret=imageinfo_detail.flickrsecret
+                imageexif=talk2flickr.getexif(flickrphotoid,secret)
+                aperture=imageexif['Aperture_clean']
+                shutter=imageexif['Exposure_clean']
+                focal_length=imageexif['Focal Length_clean']
+                iso=imageexif['ISO Speed_raw']
+                
+                imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,photohash,photohash_resized,imgname,aperture,shutter,focal_length,iso)
                 
                 #---------------------------------
                 
-                #----------- TAGS2FLICKRNDB ------
-                
-                tags2flickrndb(photoid,flickrphotoid,xmltaglist,database)
-                     
-                
-                #------- RETURN IMAGEINFO -------
-                
-                #add imageinfo_detail to imgfromxml-class and append
-                #imgfromxml-class to xmlimglist_plus_db_details
-                for imgfromxml in xmlimglist:
-                    if imgfromxml.name==image:
-                        imgfromxml.name
-                        imageinfo_detail.flickrphotoid 
-                        imgfromxml.imageinfo_detail=imageinfo_detail
-                        xmlimglist_plus_db_details.append(imgfromxml)
+            #----------- TAGS2FLICKRNDB ------
+            
+            tags2flickrndb(imageinfo_detail.id,flickrphotoid,xmltaglist,database)
+                 
+            
+            #------- RETURN IMAGEINFO -------
+            
+            #add imageinfo_detail to imgfromxml-class and append
+            #imgfromxml-class to xmlimglist_plus_db_details
+            for imgfromxml in xmlimglist:
+                if imgfromxml.name==image:
+                    imgfromxml.name
+                    imageinfo_detail.flickrphotoid 
+                    imgfromxml.imageinfo_detail=imageinfo_detail
+                    xmlimglist_plus_db_details.append(imgfromxml)
     return xmlimglist_plus_db_details
 
 

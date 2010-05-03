@@ -22,7 +22,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("infomarker_id", types.Integer, ForeignKey('trackpoint.id')),
         sa.Column("topic", types.UnicodeText),
         sa.Column("content", types.UnicodeText),
-        sa.Column("createdate", types.TIMESTAMP(timezone=True),default=now()),
+        sa.Column("createdate", types.TIMESTAMP(timezone=False),default=now()),
         )
 
     class log(object):
@@ -45,7 +45,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
         sa.Column("log_id", types.Integer, ForeignKey('log.id')),
         sa.Column("alias", types.VARCHAR(128)),
-        sa.Column("date", types.TIMESTAMP(timezone=True)),
+        sa.Column("date", types.TIMESTAMP(timezone=False)),
         sa.Column("email", types.VARCHAR(128)),
         sa.Column("region", types.UnicodeText),
         sa.Column("comment", types.UnicodeText),
@@ -151,19 +151,23 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("flickrserver", types.VARCHAR(256)),
         sa.Column("flickrphotoid", types.VARCHAR(256)),
         sa.Column("flickrsecret", types.VARCHAR(256)),
-        sa.Column("flickrdatetaken", types.TIMESTAMP(timezone=True)),
+        sa.Column("flickrdatetaken", types.TIMESTAMP(timezone=False)),
         sa.Column("flickrtitle", types.VARCHAR(256)),
         sa.Column("flickrdescription", types.UnicodeText),
         sa.Column("photohash", types.VARCHAR(256)),
         sa.Column("photohash_990", types.VARCHAR(256)),
         sa.Column("imgname", types.VARCHAR(64)),
+        sa.Column("aperture", types.VARCHAR(8)),
+        sa.Column("shutter", types.VARCHAR(64)),
+        sa.Column("focal_length", types.VARCHAR(64)),
+        sa.Column("iso", types.VARCHAR(8)),
         )
 
     class imageinfo(object):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash,photohash_990,imgname):
+        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash,photohash_990,imgname,aperture,shutter,focal_length,iso):
             self.log_id = log_id
             self.photoset_id = photoset_id
             self.infomarker_id = infomarker_id
@@ -178,16 +182,20 @@ def initdatabase(pg_user,pg_passwd):
             self.photohash = photohash
             self.photohash_990 = photohash_990
             self.imgname = imgname
+            self.aperture = aperture
+            self.shutter = shutter
+            self.focal_length = focal_length
+            self.iso = iso
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash,self.photohash_990,self.imgname)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash,self.photohash_990,self.imgname,self.aperture,self.shutter,self.focal_length,self.iso)
 
 
     ####### TRACK ########
 
     track_table = sa.Table("track", meta,
         sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
-        sa.Column("date", types.TIMESTAMP(timezone=True)),
+        sa.Column("date", types.TIMESTAMP(timezone=False)),
         sa.Column("trkptnum", types.Integer),
         sa.Column("distance", types.Numeric(11,4)),
         sa.Column("timespan", types.DateTime),
@@ -226,7 +234,7 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("temperature", types.Integer),
         sa.Column("direction", types.Integer),
         sa.Column("pressure", types.Integer),
-        sa.Column("timestamp", types.TIMESTAMP(timezone=True)),
+        sa.Column("timestamp", types.TIMESTAMP(timezone=False)),
         sa.Column("infomarker", types.Boolean, default=False),
         sa.Column("location", types.VARCHAR(256)),
         )

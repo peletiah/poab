@@ -55,9 +55,10 @@ def update_imageinfo(database,photohash,photohash_resized,imagename,imageinfo,lo
     db_imageinfo=database.db_imageinfo
     print imageinfo.id
     print photohash
-    q = session.query(db_imageinfo).filter(and_(db_imageinfo.id==imageinfo.id,db_imageinfo.photohash==photohash))
+    q = session.query(db_imageinfo).filter(and_(db_imageinfo.id==imageinfo.id,db_imageinfo.flickrphotoid==imageinfo.flickrphotoid))
     for column in q.all():
         column.imgname=imagename
+        column.photohash=photohash
         column.photohash_990=photohash_resized
         column.log_id=loginfo.id
         session.commit()

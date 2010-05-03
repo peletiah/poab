@@ -1,6 +1,7 @@
 from sqlalchemy import and_
 from sqlalchemy import update
 import db_functions
+from datetime import datetime
 
 
 
@@ -22,7 +23,7 @@ def parseimgstrings(logtext,xmlimglist_plus_db_details,num_of_img):
 
 
 
-def log2db(topic,logtext,xmlimglist_plus_db_details,num_of_img,infomarker_id,database):
+def log2db(topic,logtext,createdate,xmlimglist_plus_db_details,num_of_img,infomarker_id,database):
     session=database.db_session()
     db_log=database.db_log
     parsed_logtext=parseimgstrings(logtext,xmlimglist_plus_db_details,num_of_img)
@@ -37,8 +38,7 @@ def log2db(topic,logtext,xmlimglist_plus_db_details,num_of_img,infomarker_id,dat
             log_detail=detail
         print 'Log duplicate found! - id:' + str(log_detail.id) + ' - details:' + str(log_detail)
     else:
-#fix logdate?
-        session.add(db_log(infomarker_id,topic,parsed_logtext,db_functions.now()))
+        session.add(db_log(infomarker_id,topic,parsed_logtext,createdate))
         session.commit()
         for detail in query_log.all():
             log_detail=detail

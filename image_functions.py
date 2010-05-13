@@ -6,7 +6,7 @@ from sqlalchemy import and_
 from sqlalchemy import update
 import hashlib
 import glob
-
+import sys
 
 def checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img):
     filetypes=('png','jpg','jpeg','gif','tif')
@@ -222,9 +222,13 @@ def tags2flickrndb(photoid,flickrphotoid,xmltaglist,database):
 		          session.commit()
 
 def sortedlistdir(imagepath, cmpfunc=cmp):
-    l = os.listdir(imagepath)
-    l.sort(cmpfunc)
-    return l
+    try:
+        l = os.listdir(imagepath)
+        l.sort(cmpfunc)
+        return l
+    except OSError, (value):
+        sys.stderr.write("%s\n" % (value, ))
+        return ''
 
 def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database):
     filetypes=('.png','.jpg','.jpeg','.gif','.tif')
@@ -273,11 +277,13 @@ def img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,f
                         imgdescription=imgfromxml.description
                         print 'imgdescription='+str(imgdescription)
                         photohash=filehash
+                        photohash_resized=imgfromxml.hash_resized
                     elif filehash==imgfromxml.hash_resized:
                         print 'Matching resized image found in xmlimglist!'
                         imgdescription=imgfromxml.description
                         print 'imgdescription='+str(imgdescription)
                         photohash_resize=filehash
+                        photohash=imgfromxml.hash_full
                     else:
                         hashok=False
                         errorimage=image

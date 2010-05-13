@@ -1,3 +1,5 @@
+## downloads photos of a specified flickr-set and adds details to the db
+
 import talk2flickr
 from optparse import OptionParser
 import db_functions

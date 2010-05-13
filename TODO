@@ -12,3 +12,5 @@
 + fix UTF-8 issues on poab_local with tinymce/punymce
 + autosave for poab_local(No lost log-entries anymore)
 + logid2images sets current log_id for all related images, but this might cause problems for the imagepath, check it...
++ poab_local: in post.py make sure image-hashes are calculated from the modified(gps-tagged) images before values are written to the xml-file
++ poab_local: need to create contentfile.xml on call for index.py

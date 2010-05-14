@@ -14,3 +14,5 @@
 + logid2images sets current log_id for all related images, but this might cause problems for the imagepath, check it...
 + poab_local: in post.py make sure image-hashes are calculated from the modified(gps-tagged) images before values are written to the xml-file
 + poab_local: need to create contentfile.xml on call for index.py
++ merge best_990, best and sorted, path should be saved in the xml then, rsync accordingly only for files in contentfile.xml/log
++ convert, geotag and hash once with poab_local and document all files in contentfile.xml, "convert" produces different files/hash-values

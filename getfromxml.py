@@ -125,7 +125,6 @@ def main(basepath):
             database=db_functions.initdatabase(pg_user,pg_passwd)
     
             infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color)
-            image_functions.checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img)
             hashcheck,upload2flickrpath=image_functions.checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img)
             if hashcheck > 0:
                 return upload2flickrpath

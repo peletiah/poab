@@ -161,13 +161,15 @@ def initdatabase(pg_user,pg_passwd):
         sa.Column("shutter", types.VARCHAR(64)),
         sa.Column("focal_length", types.VARCHAR(64)),
         sa.Column("iso", types.VARCHAR(8)),
+        sa.Column("online", types.Boolean, default=False),
+        sa.Column("fullsize_online", types.Boolean, default=False),
         )
 
     class imageinfo(object):
         def __str(self):
             return self.title
 
-        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash,photohash_990,imgname,aperture,shutter,focal_length,iso):
+        def __init__(self,log_id,photoset_id,infomarker_id,trackpoint_id,flickrfarm,flickrserver,flickrphotoid,flickrsecret,flickrdatetaken,flickrtitle,flickrdescription,photohash,photohash_990,imgname,aperture,shutter,focal_length,iso,online,fullsize_online):
             self.log_id = log_id
             self.photoset_id = photoset_id
             self.infomarker_id = infomarker_id
@@ -186,9 +188,11 @@ def initdatabase(pg_user,pg_passwd):
             self.shutter = shutter
             self.focal_length = focal_length
             self.iso = iso
+            self.online = online
+            self.fullsize_online = fullsize_online
 
         def __repr__(self):
-            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash,self.photohash_990,self.imgname,self.aperture,self.shutter,self.focal_length,self.iso)
+            return "<imageinfo('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.log_id,self.photoset_id,self.infomarker_id,self.trackpoint_id,self.flickrfarm,self.flickrserver,self.flickrphotoid,self.flickrsecret,self.flickrdatetaken,self.flickrtitle,self.flickrdescription,self.photohash,self.photohash_990,self.imgname,self.aperture,self.shutter,self.focal_length,self.iso,self.online,self.fullsize_online)
 
 
     ####### TRACK ########

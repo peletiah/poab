@@ -62,7 +62,6 @@ def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):
     print imagepath_fullsize
     if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_fullsize+"*|grep -v '==='|grep -v 'read'|awk '{printf \"%s\", $0} {print $5 $7}'").readlines():
         print 'Pictures are already geotagged'
-        #os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
     else:
         print 'no GPS-Tags found, geotagging now'
         if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_fullsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:
@@ -74,7 +73,6 @@ def geotag(imagepath_fullsize,imagepath_smallsize,trackpath):
     print imagepath_smallsize
     if os.popen("/usr/bin/exiftool -specialinstructions "+imagepath_smallsize+"*|grep -v '==='|grep -v 'read'|awk '{printf \"%s\", $0} {print $5 $7}'").readlines():
         print 'Pictures are already geotagged'
-        #os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --delete-geotag > /var/log/poab/geotag.log 2>&1")
     else:
         print 'no GPS-Tags found, geotagging now'
         if os.system("/usr/bin/perl /root/scripts/gpsPhoto.pl --dir "+imagepath_smallsize+" --gpsdir "+trackpath+" --timeoffset 0 --maxtimediff 1200 > /var/log/poab/geotag.log 2>&1") == 0:

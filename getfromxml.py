@@ -32,17 +32,22 @@ def getcredentials(credentialfile):
     return pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key
 
 
-def parsexml(basepath,xmlfile):
+def parsexml(basepath,xmlfile,parsed):
     tree = etree.parse(basepath+xmlfile)
     root = tree.getroot()
     logs=root.getiterator("log")
     for log in logs:
         try:
             done =  log.find('done').text
-            if done == 'true':
-                return done
+            if done == 'true' and parsed==True:
+                return True
+            elif done == 'true' and parsed==False:
+                pass
         except AttributeError:
-            pass
+            if parsed==True:
+                return False
+            else:
+                pass
         print log.find('topic').text
         topic =  log.find('topic').text.replace("&gt;",">").replace("&lt;","<")
         logtext =  log.find('logtext').text.replace("&gt;",">").replace("&lt;","<")
@@ -95,10 +100,11 @@ def main(basepath):
     for xmlfile in os.listdir(basepath):
         if xmlfile.lower().endswith('.xml'):
             print 'xmlfile: '+xmlfile
-            if parsexml(basepath,xmlfile) == 'true':
+            parsed=True
+            if parsexml(basepath,xmlfile,parsed) == True:
                 print xmlfile+' has already been parsed'
             else:
-                topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist=parsexml(basepath,xmlfile)
+                topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist=parsexml(basepath,xmlfile,False)
 			       # topic - topic of the log-entry
 			       # logtext - content-text of the log-entry
 			       # filepath - where are the files belonging to this xml-file situated 
@@ -136,6 +142,8 @@ def main(basepath):
             finishxml(xmlfile)
             return 'Everything went fine i think'
 
-finished=main(basepath)
-print finished
-print 'DONE'
+
+if __name__ == "__main__":
+    finished=main(basepath)
+    print finished
+    print 'DONE'

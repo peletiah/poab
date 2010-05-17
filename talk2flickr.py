@@ -4,10 +4,10 @@ from lxml import etree
 import ConfigParser
 import sys
 
-credentialfile='credentials.ini'
+credentialfile='/root/poab/credentials.ini'
 config=ConfigParser.ConfigParser()
 open(credentialfile)
-config.read('credentials.ini')
+config.read(credentialfile)
 api_key=config.get("flickrcredentials","api_key")
 api_secret=config.get("flickrcredentials","api_secret")
 

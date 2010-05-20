@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/root/poab')
 import talk2flickr
 from optparse import OptionParser
 import db_functions
@@ -43,17 +45,17 @@ def getcredentials(credentialfile):
 #                infomarkerlist.append(line.infomarker_id)
 #
 #    
-pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('credentials.ini')
+pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/poab/credentials.ini')
 database=db_functions.initdatabase(pg_user,pg_passwd)
 session=database.db_session()
 
 db_trackpoint=database.db_trackpoint
-q=session.query(db_trackpoint).filter(db_trackpoint.location==None)
+q=session.query(db_trackpoint).filter(db_trackpoint.location!=None)
 for line in q.all():
-    time.sleep(5)
-    print line.id
-    print line.timestamp
-    location=talk2flickr.findplace(line.latitude,line.longitude,8)
-    print location
+    print line.id,line.timestamp
+    print 'old:'+line.location
+    location=talk2flickr.findplace(line.latitude,line.longitude,16)
+    print 'new:'+location+'\n'
+#    time.sleep(1)
     line.location=location
     session.commit()

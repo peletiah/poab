@@ -36,6 +36,7 @@ def parsexml(basepath,xmlfile,parsed):
     tree = etree.parse(basepath+xmlfile)
     root = tree.getroot()
     logs=root.getiterator("log")
+    num_img_log=0
     for log in logs:
         try:
             done =  log.find('done').text
@@ -57,8 +58,8 @@ def parsexml(basepath,xmlfile,parsed):
         phototitle =  log.find('phototitle').text
         createdate =  log.find('createdate').text
         trk_color =  log.find('trk_color').text
-        num_of_img =  int(log.find('num_of_img').text)
-        print 'NUMBER OF IMAGES: '+str(num_of_img)
+        num_img_xml =  int(log.find('num_of_img').text)
+        print 'NUMBER OF IMAGES: '+str(num_img_xml)
         createdate = datetime.datetime.strptime(createdate,'%Y-%m-%d %H:%M:%S')
         images = root.getiterator("img")
         xmlimglist=list()
@@ -75,13 +76,15 @@ def parsexml(basepath,xmlfile,parsed):
                 description = image.find('description').text
                 logphoto = image.find('logphoto').text
             xmlimglist.append(imgfromxml)
+            if imgfromxml.logphoto == 'True':
+                num_img_log=num_img_log+1
         xmltaglist=list()
         query_xmltaglist='//tag'
         for element in tree.xpath(query_xmltaglist):
             xmltaglist.append(element.text)
         
 
-    return topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist		
+    return topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,trk_color,xmlimglist,xmltaglist,num_img_log		
 
 def finishxml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile,"r").read())
@@ -100,11 +103,10 @@ def main(basepath):
     for xmlfile in os.listdir(basepath):
         if xmlfile.lower().endswith('.xml'):
             print 'xmlfile: '+xmlfile
-            parsed=True
-            if parsexml(basepath,xmlfile,parsed) == True:
+            if parsexml(basepath,xmlfile,True) == True:
                 print xmlfile+' has already been parsed'
             else:
-                topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist=parsexml(basepath,xmlfile,False)
+                topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,trk_color,xmlimglist,xmltaglist,num_img_log=parsexml(basepath,xmlfile,False)
 			       # topic - topic of the log-entry
 			       # logtext - content-text of the log-entry
 			       # filepath - where are the files belonging to this xml-file situated 
@@ -112,35 +114,41 @@ def main(basepath):
 			       # phototitle - title of the photos for flickr
 			       # xmlimglist - list of the images in the xml
 			       # xmltaglist - list of the images in the xml
-            imagepath_fullsize=filepath+'images/best/'
-            imagepath_smallsize=filepath+'images/best_990/'
-            try:
-                trackpath=filepath+'trackfile/'
-                for trackfile in os.listdir(trackpath):
-                    print trackfile
-                    if trackfile.lower().endswith('.tk1'):
-                        #passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
-                        if os.path.exists(trackpath+trackfile[:-3]+'gpx'): # is there already a gpx-file with this name?
-                            print 'gpx-file already exists, passing'
+                imagepath_fullsize=filepath+'images/sorted/'
+                imagepath_resized=filepath+'images/sorted/990/'
+                try:
+                    trackpath=filepath+'trackfile/'
+                    for trackfile in os.listdir(trackpath):
+                        print trackfile
+                        if trackfile.lower().endswith('.tk1'):
+                            #passes outputDir,gpx-filename and tkFileName to tk2togpx.interactive to convert the tk1 to gpx
+                            if os.path.exists(trackpath+trackfile[:-3]+'gpx'): # is there already a gpx-file with this name?
+                                print 'gpx-file already exists, passing'
+                            else:
+                                tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
                         else:
-                            tktogpx2.interactive(trackpath,trackfile.split('.')[0]+'.gpx',trackpath+trackfile)
-                    else:
-    			           pass 
-            except IOError:
-    		      print 'No Trackfile found!'
-            database=db_functions.initdatabase(pg_user,pg_passwd)
+    			                pass 
+                except IOError:
+    		           print 'No Trackfile found!'
+                database=db_functions.initdatabase(pg_user,pg_passwd)
     
-            infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color)
-            hashcheck,upload2flickrpath=image_functions.checkimghash(imagepath_fullsize,imagepath_smallsize,xmlimglist,num_of_img)
-            if hashcheck > 0:
-                return upload2flickrpath
-            image_functions.geotag(imagepath_fullsize,imagepath_smallsize,trackpath)
-            xmlimglist_plus_db_details=image_functions.img2flickr(upload2flickrpath,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database)
-            geo_functions.add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,database)
-            log_detail=log_functions.log2db(topic,logtext,createdate,xmlimglist_plus_db_details,num_of_img,infomarker_id,database)
-            image_functions.logid2images(log_detail,xmlimglist_plus_db_details,database)
-            finishxml(xmlfile)
-            return 'Everything went fine i think'
+                infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color)
+                #files listed in xml should be geotagged already, otherwise the hash would not match anymore, image_functions.geotag is useless therefore
+                #image_functions.geotag(imagepath_fullsize,imagepath_resized,trackpath)
+                hashcheck,upload2flickrpath,fullsize=image_functions.checkimghash(imagepath_fullsize,imagepath_resized,xmlimglist,num_img_xml,num_img_log)
+                print 'Fullsize images found:'+str(fullsize)
+                if hashcheck > 0:
+                    return upload2flickrpath
+                image_functions.xmlimglist2db(photosetname,xmlimglist,database)
+                xmlimglist_plus_db_details=image_functions.img2flickr(upload2flickrpath,fullsize,imagepath_resized,xmlimglist,xmltaglist,photosetname,phototitle,flickrapi_key,flickrapi_secret,infomarker_id,database)
+                geo_functions.add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,database)
+                log_detail=log_functions.log2db(topic,logtext,createdate,xmlimglist_plus_db_details,num_img_xml,infomarker_id,database)
+                photoset_id=image_functions.getphotosetid(photosetname,database)
+                if photoset_id == 0:
+                    return 'Photoset not found!!!!!'
+                image_functions.logid2images(log_detail,xmlimglist,photoset_id,infomarker_id,database)
+                finishxml(xmlfile)
+                return 'Everything went fine i think'
 
 
 if __name__ == "__main__":

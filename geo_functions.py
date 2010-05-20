@@ -233,7 +233,7 @@ def add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,
             lat=trackpoint.latitude
             lon=trackpoint.longitude
             country=get_country(lat,lon,database)
-            location=talk2flickr.findplace(lat,lon,8)
+            location=talk2flickr.findplace(lat,lon,11)
             tz_detail=get_timezone(database,lat,lon,trackpoint.timestamp,wteapi_key)
             trackpoint.timezone_id=tz_detail.id
             trackpoint.country_id=country.iso_numcode
@@ -242,12 +242,13 @@ def add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,
             print "Added trkpt-details for imgid:"+str(imgdetail.imageinfo_detail.id)+", trkptid:"+str(trackpoint.id)+", tzabb:"+tz_detail.abbreviation+", location:"+location
         else:
             print "No trackpoint for this image - therefore no timezone, location or country-details :-("
+    #we repeat finding trackpoint-details for the infomarker
     q = session.query(db_trackpoint).filter(db_trackpoint.id==infomarker_id)
     trackpoint=q.one()
     lat=trackpoint.latitude
     lon=trackpoint.longitude
     country=get_country(lat,lon,database)
-    location=talk2flickr.findplace(lat,lon,8)
+    location=talk2flickr.findplace(lat,lon,11)
     tz_detail=get_timezone(database,lat,lon,trackpoint.timestamp,wteapi_key)
     trackpoint.timezone_id=tz_detail.id
     trackpoint.country_id=country.iso_numcode

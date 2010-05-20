@@ -24,7 +24,7 @@ database=db_functions.initdatabase(pg_user,pg_passwd)
 for xmlfile in os.listdir(basepath):
         if xmlfile.lower().endswith('.xml'):
             print 'xmlfile: '+xmlfile
-            topic,logtext,filepath,photosetname,phototitle,num_of_img,createdate,trk_color,xmlimglist,xmltaglist=parsexml(basepath,xmlfile,False)
+            topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,trk_color,xmlimglist,xmltaglist,num_img_log=parsexml(basepath,xmlfile,False)
             for imgfromxml in xmlimglist:
                 session=database.db_session()
                 db_imageinfo=database.db_imageinfo

@@ -169,6 +169,7 @@ def findplace(lat,lon,accuracy):
         place=flickr.places_findByLatLon(lat=lat,lon=lon,accuracy=accuracy)
         try:
             name=place.find('places/place').attrib['name']
+            place_id=place.find('places/place').attrib['place_id']
             return name
         except AttributeError:
             return None
@@ -176,11 +177,4 @@ def findplace(lat,lon,accuracy):
         sys.stderr.write("%s\n" % (value, ))
         sys.exit(1)
 
-#url_square='http://farm%s.static.flickr.com/%s/%s_%s_s.%s' % (farm,server,photoid,secret,originalformat)
-#url_thumb='http://farm%s.static.flickr.com/%s/%s_%s_t.%s' % (farm,server,photoid,secret,originalformat)
-#url_small='http://farm%s.static.flickr.com/%s/%s_%s_m.%s' % (farm,server,photoid,secret,originalformat)
-#url_medium='http://farm%s.static.flickr.com/%s/%s_%s.%s' % (farm,server,photoid,secret,originalformat)
-#url_large='http://farm%s.static.flickr.com/%s/%s_%s_b.%s' % (farm,server,photoid,secret,originalformat)
-#url_original='http://farm%s.static.flickr.com/%s/%s_%s_o.%s' % (farm,server,photoid,originalsecret,originalformat)
-#photopage='http://www.flickr.com/photos/peletiah/' + photoid
-
+            

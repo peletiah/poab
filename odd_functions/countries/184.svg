@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="250" width="370" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<g id="g1-f1-TM_WORLD_BORDERS-0_3">
+		<g id="g3-184" style="stroke-miterlimit: 3; fill: #00BBF4; stroke: #000000; stroke-opacity: 1; stroke-width: 0.005; stroke-linejoin: bevel; stroke-linecap: square">
+			<polygon id="pgon1" points="153.2,249.9 152.4,250.0 151.8,249.7 151.9,249.1 152.4,248.8 153.2,249.6 " />
+			<polygon id="pgon2" points="117.5,236.8 116.5,236.8 115.8,236.7 115.7,235.8 116.6,235.5 117.2,235.6 117.7,236.2 117.6,236.7 " />
+			<polygon id="pgon3" points="164.2,216.3 163.7,215.5 164.2,215.3 164.4,215.9 " />
+			<polygon id="pgon4" points="149.2,213.0 148.6,212.8 148.6,212.3 149.2,212.2 149.4,212.8 " />
+			<polygon id="pgon5" points="145.7,209.1 " />
+			<polygon id="pgon6" points="156.7,209.8 156.0,209.2 156.5,208.3 156.8,209.4 " />
+			<polygon id="pgon7" points="133.2,198.6 132.7,198.2 133.3,198.4 " />
+			<polygon id="pgon8" points="116.6,191.3 116.4,190.7 116.7,191.3 " />
+			<polygon id="pgon9" points="51.7,175.9 51.8,175.3 51.7,175.9 " />
+			<polygon id="pgon10" points="8.2,50.0 " />
+			<polygon id="pgon11" points="0.5,37.3 " />
+			<polygon id="pgon12" points="92.9,28.5 92.3,28.0 92.9,28.4 " />
+			<polygon id="pgon13" points="93.8,27.9 93.1,27.1 93.7,27.4 " />
+			<polygon id="pgon14" points="91.7,21.0 91.7,20.4 91.7,21.0 " />
+			<polygon id="pgon15" points="152.2,0.7 151.6,0.7 150.9,0.2 152.1,0.5 " />
+		</g>
+	</g>
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>

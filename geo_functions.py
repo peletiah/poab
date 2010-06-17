@@ -254,6 +254,15 @@ def add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,
     trackpoint.country_id=country.iso_numcode
     trackpoint.location=location
     session.commit()
+    q=session.query(db_trackpoint).filter(db_trackpoint.track_id==infomarker.track_id).order_by(asc(db_trackpoint.timestamp))
+    trackpoint=q.first()
+    lastlocation=talk2flickr.findplace(trackpoint.latitude,trackpoint.longitude,8)
+    print 'location of last trackpoint(used in pylons/log): '+lastlocation
+        if trackpoint.location==None:
+            trackpoint.location=lastlocation
+            session.commit()
+        else:
+            print 'last trackpoint already has a location-content, not updateing: '+trackpoint.location
          
      
 

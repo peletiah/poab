@@ -110,6 +110,52 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
+    ####### COUNTRY SHAPES ########
+
+    country_shapes_table = sa.Table("country_shapes", meta,
+        sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
+        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
+        sa.Column("gencpoly_pts", types.UnicodeText),
+	     sa.Column("gencpoly_levels", types.UnicodeText)
+        )
+
+    class country_shapes(object):
+        def __init__(self,country_id,gencpoly_pts,gencpoly_levels):
+            self.country_id = country_id
+            self.gencpoly_pts = gencpoly_pts
+            self.gencpoly_levels = gencpoly_levels
+
+        def __repr__(self):
+            return "<country_shapes_table('%s','%s','%s')" % (self.country_id,self.gencpoly_pts,self.gencpoly_levels)
+
+
+        def __str(self):
+            return self.title
+
+    ####### COUNTRY POLYGONS ########
+
+    country_polygons_table = sa.Table("country_polygons", meta,
+        sa.Column("id", types.Integer, primary_key=True, autoincrement=True),
+        sa.Column("country_id", types.Integer, ForeignKey('country.iso_numcode')),
+        sa.Column("polygon", types.UnicodeText),
+	     sa.Column("active", types.Boolean, default=True),
+	     sa.Column("solo", types.Boolean, default=False)
+        )
+
+    class country_polygons(object):
+        def __init__(self,country_id,polygon,active,solo):
+            self.country_id = country_id
+            self.polygon = polygon
+            self.active = active
+            self.solo = solo
+
+        def __repr__(self):
+            return "<country_polygons_table('%s','%s','%s','%s')" % (self.country_id,self.polygons,self.active,self.solo)
+
+
+        def __str(self):
+            return self.title
+
 
     ####### PHOTOSET ########
 
@@ -349,6 +395,12 @@ def initdatabase(pg_user,pg_passwd):
     orm.mapper(country, country_table,
         order_by=[country_table.c.iso_numcode.desc()])
 
+    orm.mapper(country_shapes, country_shapes_table,
+        order_by=[country_shapes_table.c.id.desc()])
+
+    orm.mapper(country_polygons, country_polygons_table,
+        order_by=[country_polygons_table.c.id.desc()])
+
     orm.mapper(photosets, photoset_table,
         order_by=[photoset_table.c.id.desc()])
 
@@ -379,6 +431,8 @@ def initdatabase(pg_user,pg_passwd):
         db_comments=comments
         db_continent=continent
         db_country=country
+        db_country_shapes=country_shapes
+        db_country_polygons=country_polygons
         db_photosets=photosets
         db_imageinfo=imageinfo
         db_track=track

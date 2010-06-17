@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="250" width="370" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<g id="g1-f1-TM_WORLD_BORDERS-0_3">
+		<g id="g3-702" style="stroke-miterlimit: 3; fill: #00BBF4; stroke: #000000; stroke-opacity: 1; stroke-width: 0.005; stroke-linejoin: bevel; stroke-linecap: square">
+			<polygon id="pgon1" points="361.4,121.4 368.0,128.3 370.0,133.5 369.1,139.8 365.1,150.4 355.6,161.9 329.8,186.0 211.0,249.7 204.7,250.0 162.8,249.4 12.4,207.2 7.5,204.9 4.0,201.5 1.4,197.2 0.0,191.4 0.3,185.7 2.6,175.1 30.1,113.7 32.4,108.8 38.2,100.4 45.0,92.7 56.0,82.4 64.6,77.2 75.2,73.8 168.8,57.7 182.3,57.4 194.9,59.1 214.4,68.3 246.6,86.4 259.2,95.3 264.1,97.6 337.8,117.4 361.4,121.4 " />
+		</g>
+	</g>
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>

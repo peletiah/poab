@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg height="250" width="370" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<g id="g1-f1-TM_WORLD_BORDERS-0_3">
+		<g id="g3-462" style="stroke-miterlimit: 3; fill: #00BBF4; stroke: #000000; stroke-opacity: 1; stroke-width: 0.005; stroke-linejoin: bevel; stroke-linecap: square">
+			<polygon id="pgon1" points="15.7,250.0 15.0,249.8 15.7,249.8 " />
+			<polygon id="pgon2" points="16.5,249.7 " />
+			<polygon id="pgon3" points="14.2,249.3 " />
+			<polygon id="pgon4" points="17.4,248.6 17.5,247.7 17.5,248.2 " />
+			<polygon id="pgon5" points="13.8,248.2 12.9,247.3 12.9,246.6 13.2,247.2 13.5,247.7 13.8,248.2 " />
+			<polygon id="pgon6" points="18.0,247.3 17.6,246.6 18.0,247.3 " />
+			<polygon id="pgon7" points="24.4,237.4 23.8,237.1 24.4,237.4 " />
+			<polygon id="pgon8" points="13.5,221.0 13.1,220.5 13.5,221.0 " />
+			<polygon id="pgon9" points="16.9,220.4 " />
+			<polygon id="pgon10" points="11.5,219.5 " />
+			<polygon id="pgon11" points="22.1,218.8 " />
+			<polygon id="pgon12" points="26.5,215.7 " />
+			<polygon id="pgon13" points="8.2,212.1 " />
+			<polygon id="pgon14" points="26.0,211.8 " />
+			<polygon id="pgon15" points="22.1,170.6 " />
+			<polygon id="pgon16" points="22.8,170.2 " />
+			<polygon id="pgon17" points="19.2,169.0 " />
+			<polygon id="pgon18" points="26.3,169.2 26.5,168.6 26.3,169.2 " />
+			<polygon id="pgon19" points="18.1,167.2 " />
+			<polygon id="pgon20" points="27.7,166.9 27.7,165.6 27.8,166.2 27.7,166.8 " />
+			<polygon id="pgon21" points="27.8,164.7 " />
+			<polygon id="pgon22" points="20.4,164.1 " />
+			<polygon id="pgon23" points="28.9,160.2 28.1,160.7 28.3,160.1 28.8,160.0 " />
+			<polygon id="pgon24" points="14.0,157.5 " />
+			<polygon id="pgon25" points="7.8,153.5 " />
+			<polygon id="pgon26" points="21.8,151.3 21.3,149.7 21.9,150.5 21.8,151.1 " />
+			<polygon id="pgon27" points="20.3,147.8 " />
+			<polygon id="pgon28" points="6.0,141.7 5.8,141.2 6.0,141.7 " />
+			<polygon id="pgon29" points="10.8,140.0 " />
+			<polygon id="pgon30" points="21.5,138.8 " />
+			<polygon id="pgon31" points="10.6,133.2 " />
+			<polygon id="pgon32" points="28.6,133.2 28.7,132.6 28.6,133.2 " />
+			<polygon id="pgon33" points="9.5,128.2 " />
+			<polygon id="pgon34" points="28.9,119.7 " />
+			<polygon id="pgon35" points="34.2,117.2 " />
+			<polygon id="pgon36" points="3.7,115.1 " />
+			<polygon id="pgon37" points="7.5,114.0 " />
+			<polygon id="pgon38" points="0.3,108.6 " />
+			<polygon id="pgon39" points="25.2,101.6 " />
+			<polygon id="pgon40" points="0.7,99.5 " />
+			<polygon id="pgon41" points="26.5,96.4 " />
+			<polygon id="pgon42" points="26.2,94.1 " />
+			<polygon id="pgon43" points="26.7,93.3 " />
+			<polygon id="pgon44" points="8.7,90.8 9.2,90.8 8.7,90.8 " />
+			<polygon id="pgon45" points="9.1,71.2 9.1,70.6 9.1,71.2 " />
+			<polygon id="pgon46" points="29.0,58.5 28.3,58.6 29.0,58.1 " />
+			<polygon id="pgon47" points="20.3,55.7 " />
+			<polygon id="pgon48" points="30.4,54.9 30.2,54.2 30.4,54.9 " />
+			<polygon id="pgon49" points="22.4,44.5 22.4,43.6 22.4,44.5 " />
+			<polygon id="pgon50" points="9.7,42.9 " />
+			<polygon id="pgon51" points="24.0,40.7 24.3,40.1 24.3,40.6 " />
+			<polygon id="pgon52" points="9.0,40.0 8.8,39.4 9.0,40.0 " />
+			<polygon id="pgon53" points="23.9,38.3 " />
+			<polygon id="pgon54" points="22.8,36.6 22.2,36.3 22.8,36.4 " />
+			<polygon id="pgon55" points="7.9,36.5 " />
+			<polygon id="pgon56" points="18.7,29.3 " />
+			<polygon id="pgon57" points="18.0,27.8 " />
+			<polygon id="pgon58" points="16.6,25.0 " />
+			<polygon id="pgon59" points="11.6,21.4 11.5,20.9 11.6,21.4 " />
+			<polygon id="pgon60" points="12.2,14.0 " />
+			<polygon id="pgon61" points="13.3,12.8 13.2,12.3 13.3,12.8 " />
+			<polygon id="pgon62" points="14.4,11.9 15.1,10.2 15.1,10.9 14.6,11.6 " />
+			<polygon id="pgon63" points="15.8,8.5 16.4,8.5 15.8,8.9 " />
+			<polygon id="pgon64" points="16.6,6.8 16.8,6.1 16.7,5.5 16.9,6.1 16.7,6.8 " />
+			<polygon id="pgon65" points="16.4,4.8 16.2,4.0 16.4,4.6 " />
+			<polygon id="pgon66" points="9.6,2.7 9.2,2.1 9.6,2.7 " />
+			<polygon id="pgon67" points="7.3,0.5 " />
+		</g>
+	</g>
+	<!-- 
+	Generated using the Perl SVG Module V2.50
+	by Ronan Oger
+	Info: http://www.roitsystems.com/
+ -->
+</svg>

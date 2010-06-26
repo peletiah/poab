@@ -6,6 +6,4 @@
 + fix UTF-8 issues on poab_local with tinymce/punymce
 + autosave for poab_local(No lost log-entries anymore)
 + poab_local: need to create contentfile.xml on call for index.py
-+ show next/previous log/view-pages by date, not by id
-+ add worldmap to log(To choose country)
-+ colorize currently selected menu-section
++ add most extreme lat/long for GLatLngBounds in track

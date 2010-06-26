@@ -43,7 +43,7 @@ def writesvg(database):
  
       function replaceLink(path)
         {
-          parent.modParent(path);
+          parent.modFromSVG(path);
         }
  
       function Init(evt)
@@ -192,7 +192,7 @@ def writesvg(database):
     for country in q.all():
         country_visited=False
         #print country.iso_countryname,country.iso_numcode
-        q = session.query(db_trackpoint).filter(db_trackpoint.country_id==country.iso_numcode)
+        q = session.query(db_trackpoint).filter(and_(db_trackpoint.country_id==country.iso_numcode,db_trackpoint.infomarker==True))
         if q.count() > 0:
             country_visited=True
             svgdata=svgdata+'''  <g id="%s" onmouseover="updateCountryColor(this,'#00BBF4')" onmouseout="resetCountryColor(this,'#008CB7')" onclick="replaceLink('%s')" style="cursor: pointer; stroke-miterlimit: 3; stroke: #000000; stroke-opacity: 1; stroke-width: 0.05; stroke-linejoin: bevel; stroke-linecap: square" fill="#008CB7">''' % (country.iso_numcode,country.iso_numcode)

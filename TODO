@@ -7,3 +7,4 @@
 + autosave for poab_local(No lost log-entries anymore)
 + poab_local: need to create contentfile.xml on call for index.py
 + add most extreme lat/long for GLatLngBounds in track
++ add close-X to extinfowindow(To run map_grow on extinfowindowclose)

@@ -169,10 +169,12 @@ def findplace(lat,lon,accuracy):
         place=flickr.places_findByLatLon(lat=lat,lon=lon,accuracy=accuracy)
         try:
             name=place.find('places/place').attrib['name']
-            place_id=place.find('places/place').attrib['place_id']
+            #place_id=place.find('places/place').attrib['place_id']
+            if name==None:
+                name='Here be dragons'
             return name
         except AttributeError:
-            return None
+            return 'Here be dragons'
     except flickrapi.FlickrError, (value):
         sys.stderr.write("%s\n" % (value, ))
         sys.exit(1)

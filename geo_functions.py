@@ -161,9 +161,15 @@ def get_country(lat,lon,database):
     db_country=database.db_country
     accuracy=1 #level of region-detail in flickr, 1 is world, 8 is district
     flickr_countryname=talk2flickr.findplace(lat,lon,accuracy)
-    query_country=session.query(db_country).filter(db_country.flickr_countryname==flickr_countryname)
-    country=query_country.one()
-    print 'country found - id:'+ str(country.iso_numcode) + ' - details:' + str(country)
+    print "flickr_countryname: "+str(flickr_countryname)
+    if flickr_countryname !=None:
+        query_country=session.query(db_country).filter(db_country.flickr_countryname==flickr_countryname)
+        country=query_country.one()
+        print 'country found - id:'+ str(country.iso_numcode) + ' - details:' + str(country)
+    else:
+        print "no country found, returning dummy country!"
+        query_country=session.query(db_country).filter(db_country.iso_numcode==1)
+        country=query_country.one()
     return country
 
 
@@ -181,15 +187,26 @@ def get_timezone(database,lat,lon,date,wteapi_key):
     #wte delivers current daylight-saving-time(dst)-end and next dst
     #to get the most probable timezone for the $date, we check if it is within
     #current or "modified" next dst-dates
-    xml_curr_dst=(tzdetails.xpath('/timezone/time/zone/current/effectiveUntil')[0]).text
-    xml_next_dst=(tzdetails.xpath('/timezone/time/zone/next/effectiveUntil')[0]).text
-    curr_year=xml_curr_dst.split('-',1)[0]
-    next_month_day=xml_next_dst.split('-',1)[1]
-    next_last_dst=curr_year+'-'+next_month_day
-    current_dst_end=datetime.datetime.strptime(xml_curr_dst,'%Y-%m-%d %H:%M:%S')
-    next_last_dst_end=datetime.datetime.strptime(next_last_dst,'%Y-%m-%d %H:%M:%S')
-    if date < next_last_dst_end or date > current_dst_end:
-        tz_path='next'
+    xml_curr_dst=None
+    xml_next_dst=None
+    try:
+        xml_curr_dst=(tzdetails.xpath('/timezone/time/zone/current/effectiveUntil')[0]).text
+    except IndexError:
+        print "NO effectiveUntil path found for this TIMEZONE"
+    try:
+        xml_next_dst=(tzdetails.xpath('/timezone/time/zone/next/effectiveUntil')[0]).text
+    except IndexError:
+        print "NO effectiveUntil path found for this TIMEZONE"
+    if xml_curr_dst!=None and xml_next_dst!=None:
+        curr_year=xml_curr_dst.split('-',1)[0]
+        next_month_day=xml_next_dst.split('-',1)[1]
+        next_last_dst=curr_year+'-'+next_month_day
+        current_dst_end=datetime.datetime.strptime(xml_curr_dst,'%Y-%m-%d %H:%M:%S')
+        next_last_dst_end=datetime.datetime.strptime(next_last_dst,'%Y-%m-%d %H:%M:%S')
+        if date < next_last_dst_end or date > current_dst_end:
+            tz_path='next'
+        else:
+            tz_path='current'
     else:
         tz_path='current'
     tz_utcoffset=(tzdetails.xpath('/timezone/time/zone/'+tz_path+'/utcoffset')[0]).text
@@ -258,11 +275,11 @@ def add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,
     trackpoint=q.first()
     lastlocation=talk2flickr.findplace(trackpoint.latitude,trackpoint.longitude,8)
     print 'location of last trackpoint(used in pylons/log): '+lastlocation
-        if trackpoint.location==None:
-            trackpoint.location=lastlocation
-            session.commit()
-        else:
-            print 'last trackpoint already has a location-content, not updateing: '+trackpoint.location
+    if trackpoint.location==None:
+        trackpoint.location=lastlocation
+        session.commit()
+    else:
+        print 'last trackpoint already has a location-content, not updateing: '+trackpoint.location
          
      
 

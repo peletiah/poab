@@ -8,7 +8,7 @@ import glineenc	    #custom
 import tktogpx2	    #custom
 import urllib
 import ConfigParser
-from sqlalchemy import and_
+from sqlalchemy import and_,asc
 import re
 from decimal import Decimal
 import decimal
@@ -18,6 +18,7 @@ from datetime import timedelta
 import talk2flickr
 import progress #custom
 import datetime
+import talk2flickr
 
 basepath='/srv/trackdata/bydate/'
 
@@ -37,7 +38,7 @@ def gentrkptlist(trackpath):
     return trkptlist
 
 
-def gpx2database(trackpath,wteapi_key,database,trk_color):
+def gpx2database(trackpath,wteapi_key,database,trk_color,lat,lon,createdate):
     print 'FUNCTION GPX2DATABASE'
     session=database.db_session()
     db_track=database.db_track
@@ -52,103 +53,122 @@ def gpx2database(trackpath,wteapi_key,database,trk_color):
     trkptlist=list()
     latlonlist=list()
     
-    for gpxfile in os.listdir(trackpath):
-        if gpxfile.lower().endswith('.gpx'):
-            tree = etree.parse(trackpath+gpxfile)
-            gpx_ns = "http://www.topografix.com/GPX/1/1"
-            ext_ns = "http://gps.wintec.tw/xsd/"
-            root = tree.getroot()
-            fulltrack = root.getiterator("{%s}trk"%gpx_ns)
-            trackSegments = root.getiterator("{%s}trkseg"%gpx_ns)
-            i=1
-            for trk in fulltrack:
-                print 'gpxfile trk no.' + str(i)
-                track_desc=trk.find('{%s}desc'% gpx_ns).text #get the desc-tag from the gpx-file
-                trk_ptnum[i]=trk_ptnum[i-1]+int(track_desc.split()[3][:-1])	     #cut out the value from the string e.g. "Total track points: 112."
-                trk_rspan=track_desc.split()[6][:-1]	     #cut out the value from the string e.g. "Total time: 0h18m25s."
-                trk_distance[i]=trk_distance[i-1]+float(track_desc.split()[8][:-2])	     #cut out the value from the string e.g. "Journey: 4.813Km"
-                trk_tspan=re.compile(r'(?P<h>\d+)h(?P<m>\d+)m(?P<s>\d+)s').match(trk_rspan) #find the values of h,m,s and add them to "groups"
-                trk_span[i]=trk_span[i-1]+timedelta(hours=int(trk_tspan.group("h")), minutes=int(trk_tspan.group("m")),seconds=int(trk_tspan.group("s"))) #get the values from groups "h","m","s" and save them in a timeformat
-                i=i+1
-                
-            for trackSegment in trackSegments:
-                for trackPoint in trackSegment:
-                    lat=trackPoint.attrib['lat']
-                    lon=trackPoint.attrib['lon']
-                    altitude=trackPoint.find('{%s}ele'% gpx_ns).text
-                    time=trackPoint.find('{%s}time'% gpx_ns).text.replace('T',' ')[:-1] #replace the "T" with " " and remove the "Z" from the end of the string
-                    desc=trackPoint.find('{%s}desc'% gpx_ns).text.split(', ') #split the description to get "speed" and "direction"-values
-                    velocity=0
-                    direction=0
-                    for value in desc:
-			               if value.split('=')[0] == 'Speed':
-			                   velocity=value.split('=')[1][:-4]
-			               elif value.split('=')[0] == 'Course':
-			                   direction=value.split('=')[1][:-4]
-                    try:
-			               temperature=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Temperature" % (gpx_ns,ext_ns,ext_ns)).text
-			               pressure=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Pressure" % (gpx_ns,ext_ns,ext_ns)).text
-                    except AttributeError:
-			               temperature=None
-			               pressure=None
-                    print lat,lon,time
-                    trkptlist.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
-                    latlonlist.append((float(lat),float(lon)))
-    
-    #get the last value of each "desc"-segment, this value represents the total from the several gpx-files
-    trk_ptnumtotal=trk_ptnum[i-1]
-    trk_distancetotal=trk_distance[i-1]
-    trk_spantotal=trk_span[i-1]
-    
-    #create an encoded polyline from the latitude-longitude-list
-    gencpoly=glineenc.encode_pairs(latlonlist)
-    
-    trkpt_firsttimestamp=trkptlist[0][7] #first timestamp in the trackpoint-list
-    query_track=session.query(db_track).filter(and_(db_track.date==trkpt_firsttimestamp,db_track.trkptnum==trk_ptnumtotal,db_track.distance==trk_distancetotal,db_track.timespan==trk_spantotal,db_track.gencpoly_pts==gencpoly[0].replace('\\','\\\\'),db_track.gencpoly_levels==gencpoly[1]))
-    if query_track.count() == 1:
-        for detail in query_track.all():
-            track_detail=detail
-            print 'track found - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
-    elif query_track.count() > 1:
-        for detail in query_track.all():
-            track_detail=detail
-            print 'more than one track found! - id:'#+ str(track_detail.id) + ' - details:' + str(track_detail)
-    else:
-        session.add(db_track(trkpt_firsttimestamp,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1],trk_color))
-        session.commit()
-        for detail in query_track.all():
-            track_detail=detail
-            print 'track created! - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
-
-    i=0
-    print "\nAdding trackpoints to database:\n"
-    pb=progress.progressbarClass(track_detail.trkptnum,"=")
-    for trkpt in trkptlist:
-        lat,lon,altitude,velocity,temperature,direction,pressure,time=trkptlist[i]
-        query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.timestamp==time))
-        if query_trackpoint.count() == 1:
-            for detail in query_trackpoint.all():
-                trkpt_detail=detail
-                #print 'Trackpoint already exists - id:'+ str(trkpt_detail.id) + ' details:' + str(trkpt_detail)
-        elif query_trackpoint.count() > 1:
-            for detail in query_trackpoint.all():
-                trkpt_detail=detail
-                print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
-        else:
-            #trackpoints are unique, insert them now
-            session.add(db_trackpoint(track_detail.id,None,None,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False,None))
-            session.commit()
-            for detail in query_trackpoint.all():
-                trkpt_detail=detail
-                #print 'trackpoint added! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
-        #in the middle of the track, we set the current infomarker.trackpoint_id to true as this is our infomarker-point
-        if i==track_detail.trkptnum/2:
-            for column in query_trackpoint.all():
-                column.infomarker=True
+    if os.listdir(trackpath)==[]:
+        print 'No Trackfile, checking for single trackpoint'
+        if lat and lon:
+            country=get_country(lat,lon,database)
+            location=talk2flickr.findplace(lat,lon,11)
+            q = session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.timestamp==createdate))
+            if q.count()>0:
+                print 'Trackpoint already exists: '+str(q.one().id)
+            else:
+                tz_detail=get_timezone(database,lat,lon,createdate,wteapi_key)
+                session.add(db_trackpoint(None,tz_detail.id,country.iso_numcode,lat,lon,None,None,None,None,None,createdate,True,location))
                 session.commit()
-                infomarker_id=trkpt_detail.id
-        pb.progress(i)
-        i=i+1
+            if q.count() == 1:
+                trackpoint=q.one()
+                infomarker_id=trackpoint.id
+    else:
+        for gpxfile in os.listdir(trackpath):
+            if gpxfile.lower().endswith('.gpx'):
+                tree = etree.parse(trackpath+gpxfile)
+                gpx_ns = "http://www.topografix.com/GPX/1/1"
+                ext_ns = "http://gps.wintec.tw/xsd/"
+                root = tree.getroot()
+                fulltrack = root.getiterator("{%s}trk"%gpx_ns)
+                trackSegments = root.getiterator("{%s}trkseg"%gpx_ns)
+                i=1
+                for trk in fulltrack:
+                    print 'gpxfile trk no.' + str(i)
+                    track_desc=trk.find('{%s}desc'% gpx_ns).text #get the desc-tag from the gpx-file
+                    trk_ptnum[i]=trk_ptnum[i-1]+int(track_desc.split()[3][:-1])	     #cut out the value from the string e.g. "Total track points: 112."
+                    trk_rspan=track_desc.split()[6][:-1]	     #cut out the value from the string e.g. "Total time: 0h18m25s."
+                    trk_distance[i]=trk_distance[i-1]+float(track_desc.split()[8][:-2])	     #cut out the value from the string e.g. "Journey: 4.813Km"
+                    trk_tspan=re.compile(r'(?P<h>\d+)h(?P<m>\d+)m(?P<s>\d+)s').match(trk_rspan) #find the values of h,m,s and add them to "groups"
+                    trk_span[i]=trk_span[i-1]+timedelta(hours=int(trk_tspan.group("h")), minutes=int(trk_tspan.group("m")),seconds=int(trk_tspan.group("s"))) #get the values from groups "h","m","s" and save them in a timeformat
+                    i=i+1
+                    
+                for trackSegment in trackSegments:
+                    for trackPoint in trackSegment:
+                        lat=trackPoint.attrib['lat']
+                        lon=trackPoint.attrib['lon']
+                        altitude=trackPoint.find('{%s}ele'% gpx_ns).text
+                        time=trackPoint.find('{%s}time'% gpx_ns).text.replace('T',' ')[:-1] #replace the "T" with " " and remove the "Z" from the end of the string
+                        desc=trackPoint.find('{%s}desc'% gpx_ns).text.split(', ') #split the description to get "speed" and "direction"-values
+                        velocity=0
+                        direction=0
+                        for value in desc:
+    			               if value.split('=')[0] == 'Speed':
+    			                   velocity=value.split('=')[1][:-4]
+    			               elif value.split('=')[0] == 'Course':
+    			                   direction=value.split('=')[1][:-4]
+                        try:
+    			               temperature=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Temperature" % (gpx_ns,ext_ns,ext_ns)).text
+    			               pressure=trackPoint.find("{%s}extensions/{%s}TrackPointExtension/{%s}Pressure" % (gpx_ns,ext_ns,ext_ns)).text
+                        except AttributeError:
+    			               temperature=None
+    			               pressure=None
+                        #print lat,lon,time
+                        trkptlist.append((lat,lon,altitude,velocity,temperature,direction,pressure,time))
+                        latlonlist.append((float(lat),float(lon)))
+       
+         
+        #get the last value of each "desc"-segment, this value represents the total from the several gpx-files
+        trk_ptnumtotal=trk_ptnum[i-1]
+        trk_distancetotal=trk_distance[i-1]
+        trk_spantotal=trk_span[i-1]
+        print 'Total Trackpoints found: '+str(trk_ptnumtotal)
+        
+        #create an encoded polyline from the latitude-longitude-list
+        gencpoly=glineenc.encode_pairs(latlonlist)
+        
+        trkpt_firsttimestamp=trkptlist[0][7] #first timestamp in the trackpoint-list
+        query_track=session.query(db_track).filter(and_(db_track.date==trkpt_firsttimestamp,db_track.trkptnum==trk_ptnumtotal,db_track.distance==trk_distancetotal,db_track.timespan==trk_spantotal,db_track.gencpoly_pts==gencpoly[0].replace('\\','\\\\'),db_track.gencpoly_levels==gencpoly[1]))
+        if query_track.count() == 1:
+            for detail in query_track.all():
+                track_detail=detail
+                print 'track found - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
+        elif query_track.count() > 1:
+            for detail in query_track.all():
+                track_detail=detail
+                print 'more than one track found! - id:'#+ str(track_detail.id) + ' - details:' + str(track_detail)
+        else:
+            session.add(db_track(trkpt_firsttimestamp,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1],trk_color))
+            session.commit()
+            for detail in query_track.all():
+                track_detail=detail
+                print 'track created! - id:'+ str(track_detail.id)# + ' - details:' + str(track_detail)
+    
+        i=0
+        print "\nAdding trackpoints to database:\n"
+        pb=progress.progressbarClass(track_detail.trkptnum,"=")
+        for trkpt in trkptlist:
+            lat,lon,altitude,velocity,temperature,direction,pressure,time=trkptlist[i]
+            query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track_detail.id,db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.timestamp==time))
+            if query_trackpoint.count() == 1:
+                for detail in query_trackpoint.all():
+                    trkpt_detail=detail
+                    #print 'Trackpoint already exists - id:'+ str(trkpt_detail.id) + ' details:' + str(trkpt_detail)
+            elif query_trackpoint.count() > 1:
+                for detail in query_trackpoint.all():
+                    trkpt_detail=detail
+                    print 'trackpoint duplicate found! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
+            else:
+                #trackpoints are unique, insert them now
+                session.add(db_trackpoint(track_detail.id,None,None,lat,lon,float(altitude),velocity,temperature,direction,pressure,time,False,None))
+                session.commit()
+                for detail in query_trackpoint.all():
+                    trkpt_detail=detail
+                    #print 'trackpoint added! - id:'+ str(trkpt_detail.id) + ' - details:' + str(trkpt_detail)
+            #in the middle of the track, we set the current infomarker.trackpoint_id to true as this is our infomarker-point
+            if i==track_detail.trkptnum/2:
+                for column in query_trackpoint.all():
+                    column.infomarker=True
+                    session.commit()
+                    infomarker_id=trkpt_detail.id
+            pb.progress(i)
+            i=i+1
+        print "infomarker_id="+str(infomarker_id)
     return infomarker_id	
 
 
@@ -261,15 +281,15 @@ def add_tz_country_location(xmlimglist_plus_db_details,wteapi_key,infomarker_id,
             print "No trackpoint for this image - therefore no timezone, location or country-details :-("
     #we repeat finding trackpoint-details for the infomarker
     q = session.query(db_trackpoint).filter(db_trackpoint.id==infomarker_id)
-    trackpoint=q.one()
-    lat=trackpoint.latitude
-    lon=trackpoint.longitude
+    infomarker=q.one()
+    lat=infomarker.latitude
+    lon=infomarker.longitude
     country=get_country(lat,lon,database)
     location=talk2flickr.findplace(lat,lon,11)
-    tz_detail=get_timezone(database,lat,lon,trackpoint.timestamp,wteapi_key)
-    trackpoint.timezone_id=tz_detail.id
-    trackpoint.country_id=country.iso_numcode
-    trackpoint.location=location
+    tz_detail=get_timezone(database,lat,lon,infomarker.timestamp,wteapi_key)
+    infomarker.timezone_id=tz_detail.id
+    infomarker.country_id=country.iso_numcode
+    infomarker.location=location
     session.commit()
     q=session.query(db_trackpoint).filter(db_trackpoint.track_id==infomarker.track_id).order_by(asc(db_trackpoint.timestamp))
     trackpoint=q.first()

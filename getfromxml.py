@@ -57,6 +57,14 @@ def parsexml(basepath,xmlfile,parsed):
         photosetname =  log.find('photoset').text
         phototitle =  log.find('phototitle').text
         createdate =  log.find('createdate').text
+        try:
+            latitude =  log.find('latitude').text
+        except:
+            latitude = ''
+        try:
+            longitude =  log.find('longitude').text
+        except:
+            longitude = ''
         trk_color =  log.find('trk_color').text
         num_img_xml =  int(log.find('num_of_img').text)
         print 'NUMBER OF IMAGES: '+str(num_img_xml)
@@ -84,7 +92,7 @@ def parsexml(basepath,xmlfile,parsed):
             xmltaglist.append(element.text)
         
 
-    return topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,trk_color,xmlimglist,xmltaglist,num_img_log		
+    return topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,latitude,longitude,trk_color,xmlimglist,xmltaglist,num_img_log		
 
 def finishxml(xmlfile):
     tree = etree.fromstring(file(basepath+xmlfile,"r").read())
@@ -106,7 +114,7 @@ def main(basepath):
             if parsexml(basepath,xmlfile,True) == True:
                 print xmlfile+' has already been parsed'
             else:
-                topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,trk_color,xmlimglist,xmltaglist,num_img_log=parsexml(basepath,xmlfile,False)
+                topic,logtext,filepath,photosetname,phototitle,num_img_xml,createdate,latitude,longitude,trk_color,xmlimglist,xmltaglist,num_img_log=parsexml(basepath,xmlfile,False)
 			       # topic - topic of the log-entry
 			       # logtext - content-text of the log-entry
 			       # filepath - where are the files belonging to this xml-file situated 
@@ -132,7 +140,7 @@ def main(basepath):
     		           print 'No Trackfile found!'
                 database=db_functions.initdatabase(pg_user,pg_passwd)
     
-                infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color)
+                infomarker_id=geo_functions.gpx2database(trackpath,wteapi_key,database,trk_color,latitude,longitude,createdate)
                 #files listed in xml should be geotagged already, otherwise the hash would not match anymore, image_functions.geotag is useless therefore
                 #image_functions.geotag(imagepath_fullsize,imagepath_resized,trackpath)
                 hashcheck,upload2flickrpath,fullsize=image_functions.checkimghash(imagepath_fullsize,imagepath_resized,xmlimglist,num_img_xml,num_img_log)
@@ -148,7 +156,8 @@ def main(basepath):
                     return 'Photoset not found!!!!!'
                 image_functions.logid2images(log_detail,xmlimglist,photoset_id,infomarker_id,database)
                 finishxml(xmlfile)
-                return 'Everything went fine i think'
+                infomarker_id=''
+    return 'Everything went fine i think'
 
 
 if __name__ == "__main__":

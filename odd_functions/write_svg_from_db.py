@@ -197,7 +197,7 @@ def writesvg(database):
             country_visited=True
             svgdata=svgdata+'''  <g id="%s" onmouseover="updateCountryColor(this,'#00BBF4')" onmouseout="resetCountryColor(this,'#008CB7')" onclick="replaceLink('%s')" style="cursor: pointer; stroke-miterlimit: 3; stroke: #000000; stroke-opacity: 1; stroke-width: 0.05; stroke-linejoin: bevel; stroke-linecap: square" fill="#008CB7">''' % (country.iso_numcode,country.iso_numcode)
         else:
-            svgdata=svgdata+'''  <g id="'''+str(country.iso_numcode)+'''" style="stroke-miterlimit: 3; fill: #F1F1F1; stroke: #000000; stroke-opacity: 1; stroke-width: 0.05; stroke-linejoin: bevel; stroke-linecap: square">\n'''
+            svgdata=svgdata+'''  <g id="'''+str(country.iso_numcode)+'''" style="stroke-miterlimit: 3; fill: #CFC2BB; stroke: #000000; stroke-opacity: 1; stroke-width: 0.05; stroke-linejoin: bevel; stroke-linecap: square">\n'''
         
         q = session.query(db_country_polygons).filter(and_(db_country_polygons.country_id==country.iso_numcode,db_country_polygons.active==True,db_country_polygons.solo==False))
         i=1
@@ -231,6 +231,7 @@ def writesvg(database):
       </text>
    </g>
 </svg>'''
+    #basepath='/opt/pylons/poab/poab/public/static/'
     basepath='/root/pylons/poab/poab/public/static/'
     countrysvg=open(basepath+'world.svg','w')
     countrysvg.write(svgdata)

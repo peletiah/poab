@@ -295,15 +295,19 @@ def img2flickr(upload2flickrpath,fullsize,imagepath_resized,xmlimglist,xmltaglis
                             query_trackpoint=session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==latitude,db_trackpoint.longitude==longitude))
                             trackpoint_id=query_trackpoint.first().id
                         #no trackpoint was near this image, so we have no
-                        #respective link for the db
+                        #exact geolocation, we'll use the infomarker-location instead
                         else:
-                            trackpoint_id=None
+                            print 'NO GEOINFO for this IMAGE, setting INFOMARKER as locationinfomarker_id='+str(infomarker_id)
+                            trackpoint_id=infomarker_id
+                            q = session.query(db_trackpoint).filter(db_trackpoint.id==infomarker_id)
+                            infomarker=q.one()
+                            latitude,longitude=infomarker.latitude,infomarker.longitude
 	                     
     	              #-----------------------------------
 
                     #------------ FLICKR --------------
 
-                    flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,imgfromxml.description,'')
+                    flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,'http://poab.org '+imgfromxml.description+'\n\nTravelling across the globe by bike - <a href="http://poab.org" target="_blank">poab.org</a>','')
                     print flickrphotoid
                     try:
                         #sets the geolocation of the newly uploaded picture on flickr
@@ -331,7 +335,7 @@ def img2flickr(upload2flickrpath,fullsize,imagepath_resized,xmlimglist,xmltaglis
                     
                     imgname='/'+imagepath_resized.split('/',2)[2]+image
                        
-                    imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,description,infomarker_id,photoset_id,trackpoint_id,database,imgfromxml.hash_full,imgfromxml.hash_resized,imgname,aperture,shutter,focal_length,iso,fullsize)
+                    imageinfo_detail=img2database(farm,server,flickrphotoid,secret,originalformat,date_taken,title,imgfromxml.description,infomarker_id,photoset_id,trackpoint_id,database,imgfromxml.hash_full,imgfromxml.hash_resized,imgname,aperture,shutter,focal_length,iso,fullsize)
                     
                     #---------------------------------
                     

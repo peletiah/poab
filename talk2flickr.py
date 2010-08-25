@@ -98,8 +98,8 @@ def photoset_addphoto(photoset_id,photoid):
 
 def addtags(photoid,tags):
     try:
-	result=flickr.photos_addTags(photo_id=photoid,tags=tags)
-	return result
+        result=flickr.photos_addTags(photo_id=photoid,tags=tags)
+        return result
     except flickrapi.FlickrError, (value):
         sys.stderr.write("%s\n" % (value, ))
         sys.exit(1)

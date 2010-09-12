@@ -133,7 +133,7 @@ def gpx2database(trackpath,wteapi_key,database,trk_color,lat,lon,createdate):
                 track_detail=detail
                 print 'more than one track found! - id:'#+ str(track_detail.id) + ' - details:' + str(track_detail)
         else:
-            session.add(db_track(trkpt_firsttimestamp,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1],trk_color))
+            session.add(db_track(trkpt_firsttimestamp,trk_ptnumtotal,trk_distancetotal,trk_spantotal,gencpoly[0].replace('\\','\\\\'),gencpoly[1],trk_color,None,None,None,None))
             session.commit()
             for detail in query_track.all():
                 track_detail=detail

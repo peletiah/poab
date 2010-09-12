@@ -261,7 +261,7 @@ def initdatabase(pg_user,pg_passwd):
         def __str(self):
             return self.title
 
-        def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels,color):
+        def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels,color,maxlat,maxlon,minlat,minlon):
             self.date = date
             self.trkptnum = trkptnum
             self.distance = distance

@@ -21,11 +21,11 @@ def getcredentials(credentialfile):
     return pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key
 
 
-def getmaxbounds(database):
+def getmaxminbounds(database):
     session=database.db_session()
     db_track=database.db_track
     db_trackpoint=database.db_trackpoint
-    q = session.query(db_track)
+    q = session.query(db_track).filter(or_(db_track.maxlat==None,db_track.minlon==None,db_track.minlat==None,db_track.minlon==None))
     tracks = q.all()
     for track in tracks:
         q = session.query(db_trackpoint).filter(and_(db_trackpoint.track_id==track.id,db_trackpoint.infomarker==True))
@@ -57,4 +57,4 @@ def getmaxbounds(database):
 if __name__ == "__main__":
     pg_user,pg_passwd,flickrapi_key,flickrapi_secret,wteapi_key=getcredentials('/root/poab/credentials.ini')
     database=db_functions.initdatabase(pg_user,pg_passwd)
-    getmaxbounds(database)
+    getmaxminbounds(database)

@@ -231,8 +231,8 @@ def writesvg(database):
       </text>
    </g>
 </svg>'''
-    #basepath='/opt/pylons/poab/poab/public/static/'
-    basepath='/root/pylons/poab/poab/public/static/'
+    basepath='/opt/pylons/poab/poab/public/static/'
+    #basepath='/root/pylons/poab/poab/public/static/'
     countrysvg=open(basepath+'world.svg','w')
     countrysvg.write(svgdata)
     countrysvg.close()

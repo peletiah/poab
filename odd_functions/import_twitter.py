@@ -24,40 +24,49 @@ for tweet in tweets['entries']:
     date=strftime("%Y-%m-%d %H:%M:%S", tweet.updated_parsed)
     content=tweet['description']
     guid=tweet['guid']
-    q = session.query(db_log).filter(db_log.content==content)
-    if q.count()>0:
-        print 'tweet already in db: '+date,content
+    p=re.compile("http://twitter.com/derreisende/statuses/(?P<guid>\d{1,})")
+    if int(p.search(guid).group("guid"))<20968436430:
+        print 'guid less than first relevant entry, ignoring'
     else:
-        p=re.compile("(?P<lat>-{0,1}\d{1,5}),(?P<lon>-{0,1}\d{1,6})")
-        if p.search(content):
-            p_lat=p.search(content).group("lat")
-            p_lon=p.search(content).group("lon")
-            #we split the regex-match at the last two digits and insert a colon
-            lat=p_lat[:-3]+"."+p_lat[-3:]
-            lon=p_lon[:-3]+"."+p_lon[-3:]
-            country=get_country(lat,lon,database)
-            location=talk2flickr.findplace(lat,lon,11)
-            print lat,lon,country.iso_numcode,location
-            q = session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.timestamp==date))
-            if q.count()>0:
-                print 'Trackpoint already exists: '+str(q.one().id)
+        q = session.query(db_log).filter(db_log.content==content)
+        if q.count()>0:
+            print 'tweet already in db: '+date,content
+        else:
+            p=re.compile("(?P<lat>-{0,1}\d{1,5}),(?P<lon>-{0,1}\d{1,6})")
+            if p.search(content):
+                p_lat=p.search(content).group("lat")
+                p_lon=p.search(content).group("lon")
+                #we split the regex-match at the last two digits and insert a colon
+                lat=p_lat[:-3]+"."+p_lat[-3:]
+                lon=p_lon[:-3]+"."+p_lon[-3:]
+                country=get_country(lat,lon,database)
+                location=talk2flickr.findplace(lat,lon,11)
+                print lat,lon,country.iso_numcode,location
+                q = session.query(db_trackpoint).filter(and_(db_trackpoint.latitude==lat,db_trackpoint.longitude==lon,db_trackpoint.timestamp==date))
+                if q.count()>0:
+                    print 'Trackpoint already exists: '+str(q.one().id)
+                else:
+                    tz_detail=get_timezone(database,lat,lon,datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S'),wteapi_key)
+                    session.add(db_trackpoint(None,tz_detail.id,country.iso_numcode,lat,lon,None,None,None,None,None,date,True,location))
+                    session.commit()
+                if q.count() == 1:
+                    trackpoint=q.one()
+                    content=content.replace('derreisende: ','')
+                    content=content.replace(p_lat+','+p_lon,'<a rel="map_colorbox" href="/track/simple/'+str(trackpoint.id)+'" target="_blank">'+lat+', '+lon+'</a>')
+                    q = session.query(db_log).filter(db_log.topic==guid)
+                    if q.count()>0:
+                        print 'tweet already in db: '+date,content
+                    else:
+                        print guid
+                        session.add(db_log(trackpoint.id,guid,content,date))
+                        session.commit()
+                else:
+                    print str(q.count())+' entries found for '+str(lat)+','+str(lon)+','+str(date)
             else:
-                tz_detail=get_timezone(database,lat,lon,datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S'),wteapi_key)
-                session.add(db_trackpoint(None,tz_detail.id,country.iso_numcode,lat,lon,None,None,None,None,None,date,True,location))
-                session.commit()
-            if q.count() == 1:
-                trackpoint=q.one()
-                content=content.replace('derreisende: ','')
-                content=content.replace(p_lat+','+p_lon,'<a rel="map_colorbox" href="/track/simple/'+str(trackpoint.id)+'" target="_blank">'+lat+', '+lon+'</a>')
-                q = session.query(db_log).filter(db_log.content==content)
+                q = session.query(db_log).filter(db_log.topic==guid)
                 if q.count()>0:
                     print 'tweet already in db: '+date,content
                 else:
-                    session.add(db_log(trackpoint.id,guid,content,date))
+                    session.add(db_log(1,guid,content.replace('derreisende: ',''),date))
                     session.commit()
-            else:
-                print str(q.count())+' entries found for '+str(lat)+','+str(lon)+','+str(date)
-        else:
-            #session.add(db_log(114791,title,content.replace('derreisende: ',''),date))
-            #session.commit()
-            print 'non geotagged entries not written to db'
+                    print 'non geotagged entries written to db'

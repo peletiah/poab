@@ -1,5 +1,8 @@
 #!/usr/bin/python2.5
 
+import sys
+sys.path.append('/root/poab/odd_functions')
+import write_svg_from_db
 from lxml import etree
 from xml.etree import ElementTree
 import os
@@ -155,6 +158,7 @@ def main(basepath):
                 if photoset_id == 0:
                     return 'Photoset not found!!!!!'
                 image_functions.logid2images(log_detail,xmlimglist,photoset_id,infomarker_id,database)
+                write_svg_from_db.writesvg(database)
                 finishxml(xmlfile)
                 infomarker_id=''
     return 'Everything went fine i think'

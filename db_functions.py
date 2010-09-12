@@ -11,7 +11,7 @@ def now():
 
 
 def initdatabase(pg_user,pg_passwd):
-    engine = sa.create_engine('postgres://' + pg_user + ':' + pg_passwd + '@localhost/poab')
+    engine = sa.create_engine('postgres://' + pg_user + ':' + pg_passwd + '@localhost/poab_dev')
 
     meta = sa.MetaData()
 
@@ -252,6 +252,10 @@ def initdatabase(pg_user,pg_passwd):
 	     sa.Column("gencpoly_pts", types.UnicodeText),
 	     sa.Column("gencpoly_levels", types.UnicodeText),
         sa.Column("color", types.CHAR(6), default='FF0000'),
+        sa.Column("maxlat", types.Numeric(9,7)),
+        sa.Column("maxlon", types.Numeric(10,7)),
+        sa.Column("minlat", types.Numeric(9,7)),
+        sa.Column("minlon", types.Numeric(10,7)),
         )
     class track(object):
         def __str(self):
@@ -259,15 +263,19 @@ def initdatabase(pg_user,pg_passwd):
 
         def __init__(self,date,trkptnum,distance,timespan,gencpoly_pts,gencpoly_levels,color):
             self.date = date
-	    self.trkptnum = trkptnum
+            self.trkptnum = trkptnum
             self.distance = distance
             self.timespan = timespan
-	    self.gencpoly_pts = gencpoly_pts
-	    self.gencpoly_levels = gencpoly_levels
-	    self.color = color
+            self.gencpoly_pts = gencpoly_pts
+            self.gencpoly_levels = gencpoly_levels
+            self.color = color
+            self.maxlat = maxlat
+            self.maxlon = maxlon
+            self.minlat = minlat
+            self.minlon = minlon
 
         def __repr__(self):
-            return "<track('%s','%s','%s','%s','%s','%s')>" % (self.date,self.distance,self.timespan,self.gencpoly_pts,self.gencpoly_levels,self.color)
+            return "<track('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')>" % (self.date,self.distance,self.timespan,self.gencpoly_pts,self.gencpoly_levels,self.color,self.maxlat,self.maxlon,self.minlat,self.minlon)
 
 
     ####### TRACKPOINT ########

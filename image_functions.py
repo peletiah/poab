@@ -307,7 +307,7 @@ def img2flickr(upload2flickrpath,fullsize,imagepath_resized,xmlimglist,xmltaglis
 
                     #------------ FLICKR --------------
 
-                    flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,'http://poab.org '+imgfromxml.description+'\n\nTravelling across the globe by bike - <a href="http://poab.org" target="_blank">poab.org</a>','')
+                    flickrphotoid=talk2flickr.imgupload(upload2flickrpath+image,phototitle,imgfromxml.description+'\n\nTravelling across the globe by bike - <a href="http://poab.org" target="_blank">poab.org</a>','')
                     print flickrphotoid
                     try:
                         #sets the geolocation of the newly uploaded picture on flickr
